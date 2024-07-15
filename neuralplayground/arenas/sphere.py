@@ -4,7 +4,7 @@ import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
 from neuralplayground.arenas.arena_core import Environment
-from neuralplayground.plotting.plot_utils import make_plot_trajectories
+from neuralplayground.plotting.plot_utils import make_plot_trajectories_3d
 
 class Sphere(Environment):
     """
@@ -48,13 +48,11 @@ class Sphere(Environment):
     
     @staticmethod
     def project_to_tangent(point: np.ndarray, vector: np.ndarray):
-
         proj = np.dot(point, vector) * point
-        return point - proj
+        return vector - proj
     
     @staticmethod
     def to_spherical(point: np.ndarray):
-
         phi = np.arccos(point[2])
         theta = np.arctan2(point[1], point[0])
         theta = theta + 2*np.pi if theta < 0 else theta
@@ -67,9 +65,49 @@ class Sphere(Environment):
     
     def normalize_state(self, current_state):
         theta, phi = self.to_spherical(current_state)
-        theta = round(theta*self.n_stacks/2*np.pi) * 2*np.pi / self.n_stacks
-        phi = round(theta*self.n_slices/2*np.pi) * 2*np.pi / self.n_slices
+        dphi, dtheta = np.pi/self.n_stacks, 2*np.pi/self.n_stacks
+        theta = round(theta/dtheta) * dtheta
+        phi = np.pi/2 + round((phi - np.pi/2)/dphi) * dphi
         return self.to_extrinsic(theta, phi)
+
+    def reset(self, random_state: bool = False, custom_state: np.ndarray = None):
+        """Reset the environment variables
+
+        Parameters
+        ----------
+        random_state: bool
+            If True, sample a new position uniformly within the arena, use default otherwise
+        custom_state: np.ndarray
+            If given, use this array to set the initial state
+
+        Returns
+        ----------
+        observation: ndarray
+            Because this is a fully observable environment, make_observation returns the state of the environment
+            Array of the observation of the agent in the environment (Could be modified as the environments are evolves)
+
+        self.state: ndarray (2,)
+            Vector of the x and y coordinate of the position of the animal in the environment
+        """
+        self.global_steps = 0
+        self.global_time = 0
+        self.history = []
+        if random_state:
+            self.state = np.asarray(
+                [
+                    np.random.uniform(low=self.arena_limits[0, 0], high=self.arena_limits[0, 1]),
+                    np.random.uniform(low=self.arena_limits[1, 0], high=self.arena_limits[1, 1]),
+                ]
+            )
+        else:
+            self.state = np.asarray([0,0,-1])
+        self.state = np.array(self.state)
+
+        if custom_state is not None:
+            self.state = np.array(custom_state)
+        # Fully observable environment, make_observation returns the state
+        observation = self.make_observation()
+        return observation, self.state
 
     
 
@@ -99,11 +137,13 @@ class Sphere(Environment):
             # Project random direction onto instantaneous tangent plane
             action = self.project_to_tangent(self.state, action)
 
+
             if normalize_step:
                 action = action / np.linalg.norm(action)
 
             # Take a unit step along tangent vector in tangent plane --> action and project back to sphere
-            sphere_proj = self.exponential_map(self.state, action)
+            sphere_proj = self.exponential_map(self.state, 0.1*action)
+
 
             # Approximate to discretised space
             new_state = self.normalize_state(sphere_proj)
@@ -146,7 +186,7 @@ class Sphere(Environment):
         if new_state[2] > 0:
             return pre_state, True
         
-        return new_state
+        return new_state, False
 
     def plot_trajectory(
         self,
@@ -189,13 +229,15 @@ class Sphere(Environment):
             state_history = [s["state"] for s in history_data]
             x = []
             y = []
+            z = []
             for i, s in enumerate(state_history):
                 # if i % plot_every == 0:
                 #     if i + plot_every >= len(state_history):
                 #         break
                 x.append(s[0])
                 y.append(s[1])
-            ax = make_plot_trajectories(self.arena_limits, np.asarray(x), np.asarray(y), ax, plot_every)
+                z.append(s[2])
+            ax = make_plot_trajectories_3d(np.asarray(x), np.asarray(y), np.asarray(z), ax, plot_every)
 
         if save_path is not None:
             plt.savefig(save_path, bbox_inches="tight")
@@ -207,21 +249,23 @@ class Sphere(Environment):
 
     def render(self, history_length=30):
         """Render the environment live through iterations as in OpenAI gym"""
+
         f = plt.figure()
         ax = plt.axes(projection = "3d")
-        phi = np.linspace(0, 2*np.pi, self.n_stacks)
-        theta = np.linspace(0, np.pi, self.n_slices)
+        phi = np.linspace(np.pi/2, np.pi, self.n_stacks)
+        theta = np.linspace(0, 2*np.pi, self.n_slices)
         phi, theta = np.meshgrid(phi, theta)
         x = np.sin(phi)*np.cos(theta)
         y = np.sin(phi)*np.sin(theta)
         z = np.cos(phi)
-        ax.plot_wireframe(x,y,z, color ='green')
+        ax.plot_surface(x,y,z, color ='blue', alpha = 0.5)
         canvas = FigureCanvas(f)
         history = self.history[-history_length:]
         ax = self.plot_trajectory(history_data=history, ax=ax)
-        canvas.draw()
-        image = np.frombuffer(canvas.tostring_rgb(), dtype="uint8")
-        image = image.reshape(f.canvas.get_width_height()[::-1] + (3,))
-        print(image.shape)
-        cv2.imshow("2D_env", image)
-        cv2.waitKey(10)
+        plt.show()
+        # canvas.draw()
+        # image = np.frombuffer(canvas.tostring_rgb(), dtype="uint8")
+        # image = image.reshape(f.canvas.get_width_height()[::-1] + (3,))
+        # print(image.shape)
+        # cv2.imshow("2D_env", image)
+        # cv2.waitKey(10)

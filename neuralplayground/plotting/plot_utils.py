@@ -86,6 +86,62 @@ def make_plot_trajectories(arena_limits, x, y, ax, plot_every):
     ax.set_ylim([lower_lim, upper_lim])
     return ax
 
+def make_plot_trajectories_3d(x, y, z, ax, plot_every):
+    """
+    Parameters
+    ----------
+    x: ndarray (n_samples,)
+        x position throughout recording of the given session
+    y: ndarray (n_samples,)
+        y position throughout recording of the given session
+    ax: mpl.axes._subplots.AxesSubplot (matplotlib axis from subplots)
+        axis from subplot from matplotlib where the ratemap will be plotted.
+    plot_every: int
+        time steps skipped to make the plot to reduce cluttering
+
+    Returns
+    -------
+    ax: mpl.axes._subplots.AxesSubplot (matplotlib axis from subplots)
+        Modified axis where the trajectory is plotted
+    """
+
+    # Plotting borders of the arena
+    # PLOT_CONFIG.TRAJECTORY.TRAJECTORY_COLORMAP = "bla"
+    config_vars = PLOT_CONFIG.TRAJECTORY
+    cmap = mpl.colormaps.get_cmap(config_vars.TRAJECTORY_COLORMAP)
+    norm = plt.Normalize(0, np.size(x))
+
+    aux_x = []
+    aux_y = []
+    aux_z = []
+    for i in range(len(x)):
+        if i % plot_every == 0:
+            if i + plot_every >= len(x):
+                break
+            x_ = [x[i], x[i + plot_every]]
+            y_ = [y[i], y[i + plot_every]]
+            z_ = [z[i], z[i + plot_every]]
+            aux_x.append(x[i])
+            aux_y.append(y[i])
+            aux_z.append(z[i])
+            sc = ax.plot(x_, y_, z_,"-", color=cmap(norm(i)), alpha=0.6)
+
+    # Setting plot labels
+    # ax.set_xlabel("width", fontsize=config_vars.LABEL_FONTSIZE)
+    # ax.set_ylabel("depth", fontsize=config_vars.LABEL_FONTSIZE)
+    ax.set_title("position", fontsize=config_vars.TITLE_FONTSIZE)
+    ax.grid(config_vars.GRID)
+
+    sc = ax.scatter(
+        aux_x, aux_y, aux_z, c=np.arange(len(aux_x)), vmin=0, vmax=len(x), cmap=config_vars.TRAJECTORY_COLORMAP, alpha=0.6, s=0.1
+    )
+
+    # Setting colorbar to show number of sampled (time steps) recorded
+    cbar = plt.colorbar(sc, ax=ax, ticks=[0, len(x)])
+    cbar.ax.tick_params(labelsize=config_vars.TICK_LABEL_FONTSIZE)
+    cbar.ax.set_yticklabels([0, len(x)], fontsize=config_vars.COLORBAR_LABEL_FONTSIZE)
+    return ax
+
 
 def make_plot_rate_map(h, ax, title, title_x, title_y, title_cbar):
     """plot function with formating of ratemap plot
