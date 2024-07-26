@@ -57,8 +57,11 @@ coverage.xml
 #Results
 *.pdf
 *.png
+*.mp4
+*.avi
 
 *.egg-info
 
 # PyPI distribution / packages
 dist/
+

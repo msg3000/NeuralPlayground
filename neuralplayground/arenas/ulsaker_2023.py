@@ -2,12 +2,73 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from mpl_toolkits.mplot3d import Axes3D
 
 from neuralplayground.arenas.arena_core import Environment
 from neuralplayground.plotting.plot_utils import make_plot_trajectories_3d
 
 class Sphere(Environment):
     """
+    Methods (Some in addition to Environment class)
+    ----------
+    __init__(self, environment_name="2DEnv", **env_kwargs):
+        Initialise the class
+    reset(self):
+        Reset the environment variables
+    step(self, action):
+        Increment the global step count of the agent in the environment and moves
+        the agent in the supplied direction with a fixed step size
+    plot_trajectory(self, history_data=None, ax=None):
+        Plot the Trajectory of the agent in the environment. In addition to environment class.
+    validate_action(self, pre_state, action, new_state):
+        Check if the new state is crossing the bounds of the lower hemisphere.
+    render(self, history_length=30):
+        Render the environment live through iterations as in OpenAI gym.
+    exponential_map(p, v):
+        Apply the exponential map to a point v in the tangent space of p.
+    to_spherical(point):
+        Given a point on the unit sphere returns its spherical coordiates.
+    to_extrinsic(theta, phi):
+        Convert intrinsic representation as spherical coordinates to 3D coordinates.
+    project_to_tangent(point, vector):
+        Computes orthogonal projection of vector onto point.
+
+    Attributes (Some in addition to the Environment class)
+    ----------
+    state: ndarray
+        Contains the x, y coordinate of the position and head direction of the agent (will be further developed)
+        head_direction: ndarray
+                Contains the x and y Coordinates of the position
+        position: ndarray
+                Contains the x and y Coordinates of the position
+    history: list of dicts
+        Saved history over simulation steps (action, state, new_state, reward, global_steps)
+    global_steps: int
+        Counter of the number of steps in the environment
+    arena_x_limits: float
+        Size of the environment in the x direction (width)
+    arena_y_limits: float
+        Size of the environment in the y direction (depth)
+    room_width: int
+        Size of the environment in the x direction
+    room_depth: int
+        Size of the environment in the y direction
+    metadata: dict
+        Dictionary containing the metadata
+    state_dims_labels: list
+        List of the labels of the dimensions of the state
+    observation_space: gym.spaces
+        specify the range of observations as in openai gym
+    action_space: gym.spaces
+        specify the range of actions as in openai gym
+    wall_list: list
+        List of the walls in the environment
+    observation: ndarray
+        Fully observable environment, make_observation returns the state
+        Array of the observation of the agent in the environment (Could be modified as the environments are evolves)
+    agent_step_size: float
+         Size of the step when executing movement, agent_step_size*global_steps will give
+         a measure of the total distance traversed by the agent
     """
 
     def __init__(
@@ -23,15 +84,11 @@ class Sphere(Environment):
         ----------
         environment_name: str
             Name of the specific instantiation of the Simple2D class
-        time_step_size: float
-            time_step_size * global_steps will give a measure of the time in the experimental setting
-        agent_step_size: float
-            Step size used when the action is a direction in x,y coordinate (normalize false in step())
-            Agent_step_size * global_step_number will give a measure of the distance in the experimental setting
-        arena_x_limits: float
-            Size of the environment in the x direction
-        arena_y_limits: float
-            Size of the environment in the y direction
+        n_stacks: int
+            Number of even discrete intervals to discretise polar angles
+        n_slices: int
+            Number of even discrete intervals to discretise azimuthal angles
+        
         """
         super().__init__(environment_name, **env_kwargs)
         self.metadata = {"env_kwargs": env_kwargs}
@@ -42,7 +99,6 @@ class Sphere(Environment):
 
     @staticmethod
     def exponential_map(p: np.ndarray, v: np.ndarray):
-
         v_norm = np.linalg.norm(v)
         return np.cos(v_norm)*p + np.sin(v_norm)*v/v_norm
     
@@ -53,10 +109,10 @@ class Sphere(Environment):
     
     @staticmethod
     def to_spherical(point: np.ndarray):
-        phi = np.arccos(point[2])
+        phi = np.arccos(point[2]) 
         theta = np.arctan2(point[1], point[0])
         theta = theta + 2*np.pi if theta < 0 else theta
-        return theta, phi
+        return phi, theta
     
     @staticmethod
     def to_extrinsic(theta: float, phi: float):
@@ -64,11 +120,11 @@ class Sphere(Environment):
 
     
     def normalize_state(self, current_state):
-        theta, phi = self.to_spherical(current_state)
-        dphi, dtheta = np.pi/self.n_stacks, 2*np.pi/self.n_stacks
+        phi, theta = self.to_spherical(current_state)
+        dphi, dtheta = np.pi/(2*(self.n_stacks-1)), 2*np.pi/(self.n_slices-1)
         theta = round(theta/dtheta) * dtheta
         phi = np.pi/2 + round((phi - np.pi/2)/dphi) * dphi
-        return self.to_extrinsic(theta, phi)
+        return (self.to_extrinsic(theta, phi), (phi, theta))
 
     def reset(self, random_state: bool = False, custom_state: np.ndarray = None):
         """Reset the environment variables
@@ -100,18 +156,17 @@ class Sphere(Environment):
                 ]
             )
         else:
-            self.state = np.asarray([0,0,-1])
-        self.state = np.array(self.state)
+            self.state = (np.asarray([0,0,-1]), self.to_spherical(np.array([0,0,-1])))
 
         if custom_state is not None:
-            self.state = np.array(custom_state)
+            self.state = custom_state
         # Fully observable environment, make_observation returns the state
         observation = self.make_observation()
         return observation, self.state
 
     
 
-    def step(self, action: None, normalize_step: bool = True):
+    def step(self, action = None, normalize_step: bool = True):
         """Runs the environment dynamics. Increasing global counters.
         Given some action, return observation, new state and reward.
 
@@ -135,14 +190,14 @@ class Sphere(Environment):
             new_state = self.state
         else:
             # Project random direction onto instantaneous tangent plane
-            action = self.project_to_tangent(self.state, action)
+            action = self.project_to_tangent(self.state[0], action)
 
 
             if normalize_step:
                 action = action / np.linalg.norm(action)
 
             # Take a unit step along tangent vector in tangent plane --> action and project back to sphere
-            sphere_proj = self.exponential_map(self.state, 0.1*action)
+            sphere_proj = self.exponential_map(self.state[0], 0.1*action)
 
 
             # Approximate to discretised space
@@ -150,7 +205,7 @@ class Sphere(Environment):
             
             new_state, valid_action = self.validate_action(self.state, action, new_state)
 
-        self.state = np.asarray(new_state)
+        self.state = new_state
         observation = self.make_observation()
         self._increase_global_step()
         reward = self.reward_function(action, self.state)
@@ -183,7 +238,7 @@ class Sphere(Environment):
             True if the change in state crossed a wall and was corrected
         """
        
-        if new_state[2] > 0:
+        if new_state[0][2] > 0:
             return pre_state, True
         
         return new_state, False
@@ -234,9 +289,9 @@ class Sphere(Environment):
                 # if i % plot_every == 0:
                 #     if i + plot_every >= len(state_history):
                 #         break
-                x.append(s[0])
-                y.append(s[1])
-                z.append(s[2])
+                x.append(s[0][0])
+                y.append(s[0][1])
+                z.append(s[0][2])
             ax = make_plot_trajectories_3d(np.asarray(x), np.asarray(y), np.asarray(z), ax, plot_every)
 
         if save_path is not None:
@@ -247,11 +302,13 @@ class Sphere(Environment):
         else:
             return ax
 
-    def render(self, history_length=30):
+    def render(self, history_length=30, save_dir = None, frame_num = 1):
         """Render the environment live through iterations as in OpenAI gym"""
 
         f = plt.figure()
-        ax = plt.axes(projection = "3d")
+      
+        ax = plt.axes(projection = "3d")  
+        ax.view_init(90, -90)
         phi = np.linspace(np.pi/2, np.pi, self.n_stacks)
         theta = np.linspace(0, 2*np.pi, self.n_slices)
         phi, theta = np.meshgrid(phi, theta)
@@ -260,9 +317,14 @@ class Sphere(Environment):
         z = np.cos(phi)
         ax.plot_surface(x,y,z, color ='blue', alpha = 0.5)
         canvas = FigureCanvas(f)
-        history = self.history[-history_length:]
+        history = self.history[:history_length]
         ax = self.plot_trajectory(history_data=history, ax=ax)
-        plt.show()
+    
+        if save_dir is not None:
+            plt.savefig(save_dir)
+            plt.close(f)
+        else:
+            plt.show()
         # canvas.draw()
         # image = np.frombuffer(canvas.tostring_rgb(), dtype="uint8")
         # image = image.reshape(f.canvas.get_width_height()[::-1] + (3,))
