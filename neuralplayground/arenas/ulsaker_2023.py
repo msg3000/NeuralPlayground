@@ -198,8 +198,7 @@ class Sphere(Environment):
 
             # Take a unit step along tangent vector in tangent plane --> action and project back to sphere
             sphere_proj = self.exponential_map(self.state[0], 0.1*action)
-
-
+            
             # Approximate to discretised space
             new_state = self.normalize_state(sphere_proj)
             
