@@ -15,7 +15,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
-from neuralplayground.plotting.plot_utils import make_plot_rate_map
+from neuralplayground.plotting.plot_utils import make_plot_rate_map, make_plot_rate_map_bounds
 
 from .agent_core import AgentCore
 
@@ -371,8 +371,10 @@ class RatInASphere(AgentCore):
         if sr_matrix is None:
             sr_matrix = self.successor_rep_solution()
         evals, evecs = np.linalg.eig(sr_matrix)
+        #rate_bound = np.max([np.abs(np.min(evecs.real)), np.abs(np.max(evecs.real))])
+        rate_bound = 0.3
         r_out_im = evecs[:, eigen_vector].reshape((self.n_stacks, self.n_slices)).real
-        return r_out_im
+        return r_out_im, rate_bound
 
     def plot_transition(self, T=None, save_path: str = None, ax: mpl.axes.Axes = None):
         """
@@ -408,11 +410,11 @@ class RatInASphere(AgentCore):
             eigen_vectors = random.randint(5, 19)
 
         if isinstance(eigen_vectors, int):
-            rate_map_mat = self.get_rate_map_matrix(sr_matrix, eigen_vector=eigen_vectors)
+            rate_map_mat, rate_bound = self.get_rate_map_matrix(sr_matrix, eigen_vector=eigen_vectors)
 
             if ax is None:
                 f, ax = plt.subplots(1, 1, figsize=(4, 5))
-            make_plot_rate_map(rate_map_mat, ax, "Rate map: Eig" + str(eigen_vectors), "polar", "azimuthal", "Firing rate")
+            make_plot_rate_map_bounds(rate_map_mat, ax, "Rate map: Eig" + str(eigen_vectors), "polar", "azimuthal", "Firing rate", rate_bound)
         else:
             if ax is None:
                 f, ax = plt.subplots(1, len(eigen_vectors), figsize=(4 * len(eigen_vectors), 5))
@@ -421,8 +423,8 @@ class RatInASphere(AgentCore):
                     ax,
                 ]
             for i, eig in enumerate(eigen_vectors):
-                rate_map_mat = self.get_rate_map_matrix(sr_matrix, eigen_vector=eig)
-                make_plot_rate_map(rate_map_mat, ax[i], "Rate map: " + "Eig" + str(eig), "polar", "azimuthal", "Firing rate")
+                rate_map_mat, rate_bound = self.get_rate_map_matrix(sr_matrix, eigen_vector=eig)
+                make_plot_rate_map_bounds(rate_map_mat, ax[i], "Rate map: " + "Eig" + str(eig), "polar", "azimuthal", "Firing rate", rate_bound)
         if save_path is None:
             pass
         else:

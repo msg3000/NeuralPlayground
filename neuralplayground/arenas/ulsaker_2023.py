@@ -24,6 +24,8 @@ class Sphere(Environment):
         Check if the new state is crossing the bounds of the lower hemisphere.
     render(self, history_length=30):
         Render the environment live through iterations as in OpenAI gym.
+    normalize_state(self, current_state):
+        Given a state on the sphere, will clamp to one of the discrete angles
     exponential_map(p, v):
         Apply the exponential map to a point v in the tangent space of p.
     to_spherical(point):
@@ -36,39 +38,17 @@ class Sphere(Environment):
     Attributes (Some in addition to the Environment class)
     ----------
     state: ndarray
-        Contains the x, y coordinate of the position and head direction of the agent (will be further developed)
-        head_direction: ndarray
-                Contains the x and y Coordinates of the position
-        position: ndarray
-                Contains the x and y Coordinates of the position
+        Contains the state of the agent on the lower hemisphere as a tuple of the form (extrinsic, intrinsic) where:
+            extrinsic: Euclidean coordinates of the current state - (x,y,z)
+            intrinsic: Spherical coordinates of the current state - (polar, azimuthal)
     history: list of dicts
         Saved history over simulation steps (action, state, new_state, reward, global_steps)
     global_steps: int
         Counter of the number of steps in the environment
-    arena_x_limits: float
-        Size of the environment in the x direction (width)
-    arena_y_limits: float
-        Size of the environment in the y direction (depth)
-    room_width: int
-        Size of the environment in the x direction
-    room_depth: int
-        Size of the environment in the y direction
     metadata: dict
         Dictionary containing the metadata
     state_dims_labels: list
         List of the labels of the dimensions of the state
-    observation_space: gym.spaces
-        specify the range of observations as in openai gym
-    action_space: gym.spaces
-        specify the range of actions as in openai gym
-    wall_list: list
-        List of the walls in the environment
-    observation: ndarray
-        Fully observable environment, make_observation returns the state
-        Array of the observation of the agent in the environment (Could be modified as the environments are evolves)
-    agent_step_size: float
-         Size of the step when executing movement, agent_step_size*global_steps will give
-         a measure of the total distance traversed by the agent
     """
 
     def __init__(
@@ -99,27 +79,90 @@ class Sphere(Environment):
 
     @staticmethod
     def exponential_map(p: np.ndarray, v: np.ndarray):
+        """ 
+        Apply the exponential map that starts from a point p on the sphere and maps a geodesic to the result
+        with initial velocity vector as specified by v.
+
+        Parameters
+        ----------
+        p: (3,) - 3d-vector representing initial point on sphere
+        v: (3,) - 3d-vector representing initial velocity vector
+
+        Returns
+        -------
+        (3,) - 3d-vecotr : Result of exponential map application on v with tangent space centred at p
+        """
         v_norm = np.linalg.norm(v)
         return np.cos(v_norm)*p + np.sin(v_norm)*v/v_norm
     
     @staticmethod
     def project_to_tangent(point: np.ndarray, vector: np.ndarray):
+        """ 
+        Given an arbitrary 3d-vector project it onto the tangent space of a point on a sphere
+
+        Parameters
+        ----------
+        point: (3,) - 3d-vector representing point on unit sphere
+        vector: (3,) - 3d-vector representing initial velocity vector
+
+        Returns
+        -------
+        (3,) - 3d-vector : Result of projection
+
+        """
         proj = np.dot(point, vector) * point
         return vector - proj
     
     @staticmethod
     def to_spherical(point: np.ndarray):
+        """ 
+        Given euclidean coordinates of state on sphere, compute spherical coordinates
+
+        Parameters
+        ----------
+        point: (3,) - 3d-vector representing point on unit sphere
+
+        Returns
+        -------
+        (phi, theta) - Spherical coordinates where phi is the polar angle and theta is the azimuthal angle
+
+        """
         phi = np.arccos(point[2]) 
         theta = np.arctan2(point[1], point[0])
-        theta = theta + 2*np.pi if theta < 0 else theta
+        theta = theta + 2*np.pi if theta < 0 else theta # Normalize to range (0,2*pi)
         return phi, theta
     
     @staticmethod
     def to_extrinsic(theta: float, phi: float):
+        """ 
+        Given spherical coordinates of state on sphere, compute euclidean coordinates
+
+        Parameters
+        ----------
+        theta: float = polar angle
+        phi: float =  azimuthal angle
+
+        Returns
+        -------
+        point: (3,) - 3d-vector representing point on unit sphere
+
+        """
         return np.array([np.sin(phi)*np.cos(theta), np.sin(phi)*np.sin(theta), np.cos(phi)])
 
     
     def normalize_state(self, current_state):
+        """
+        Normalize given state on unit sphere to discrete range
+
+        Parameters
+        ----------
+        current_state: (3,) - 3d-vector representing current euclidean coordinates
+
+        Returns
+        -------
+        (euclidean, spherical):  euclidean = (3,) is the 3d-vector representing point on unit sphere and spherical = (phi, theta)
+
+        """
         phi, theta = self.to_spherical(current_state)
         dphi, dtheta = np.pi/(2*(self.n_stacks-1)), 2*np.pi/(self.n_slices-1)
         theta = round(theta/dtheta) * dtheta
@@ -142,21 +185,13 @@ class Sphere(Environment):
             Because this is a fully observable environment, make_observation returns the state of the environment
             Array of the observation of the agent in the environment (Could be modified as the environments are evolves)
 
-        self.state: ndarray (2,)
-            Vector of the x and y coordinate of the position of the animal in the environment
+        self.state: tuple
+            Tuple of the euclidean and spherical coordinates of the initial state
         """
         self.global_steps = 0
         self.global_time = 0
         self.history = []
-        if random_state:
-            self.state = np.asarray(
-                [
-                    np.random.uniform(low=self.arena_limits[0, 0], high=self.arena_limits[0, 1]),
-                    np.random.uniform(low=self.arena_limits[1, 0], high=self.arena_limits[1, 1]),
-                ]
-            )
-        else:
-            self.state = (np.asarray([0,0,-1]), self.to_spherical(np.array([0,0,-1])))
+        self.state = (np.asarray([0,0,-1]), self.to_spherical(np.array([0,0,-1])))
 
         if custom_state is not None:
             self.state = custom_state
@@ -192,16 +227,16 @@ class Sphere(Environment):
             # Project random direction onto instantaneous tangent plane
             action = self.project_to_tangent(self.state[0], action)
 
-
             if normalize_step:
                 action = action / np.linalg.norm(action)
 
-            # Take a unit step along tangent vector in tangent plane --> action and project back to sphere
+            # Take a step along tangent vector in tangent plane --> action and project back to sphere
             sphere_proj = self.exponential_map(self.state[0], 0.1*action)
-            
+
             # Approximate to discretised space
             new_state = self.normalize_state(sphere_proj)
             
+            # Validate action
             new_state, valid_action = self.validate_action(self.state, action, new_state)
 
         self.state = new_state
@@ -219,25 +254,25 @@ class Sphere(Environment):
         return observation, new_state, reward
 
     def validate_action(self, pre_state, action, new_state):
-        """Check if the new state is crossing any walls in the arena.
-
+        """Check if the new state is within lower hemisphere
         Parameters
         ----------
-        pre_state : (2,) 2d-ndarray
-            2d position of pre-movement
-        new_state : (2,) 2d-ndarray
-            2d position of post-movement
+        pre_state : tuple
+            euclidean and spherical coordinates pre-movement
+        new_state : tuple
+            euclidean and spherical coordinates post-movement
 
         Returns
         -------
-        new_state: (2,) 2d-ndarray
-            corrected new state. If it is not crossing the wall, then the new_state stays the same, if the state cross the
-            wall, new_state will be corrected to a valid place without crossing the wall
-        crossed_wall: bool
-            True if the change in state crossed a wall and was corrected
+        new_state: (tuple)
+            corrected new state. If it is not crossing the upper hemisphere, then the new_state stays the same, if the state cross the
+            upper hemisphere, new_state will be corrected to a valid place without crossing the wall
+        crossed_hemisphere bool
+            True if the change in state crossed upper hemisphere and was corrected
         """
        
         if new_state[0][2] > 0:
+            # TODO: Correct for lower movement
             return pre_state, True
         
         return new_state, False
@@ -285,9 +320,6 @@ class Sphere(Environment):
             y = []
             z = []
             for i, s in enumerate(state_history):
-                # if i % plot_every == 0:
-                #     if i + plot_every >= len(state_history):
-                #         break
                 x.append(s[0][0])
                 y.append(s[0][1])
                 z.append(s[0][2])
@@ -305,9 +337,12 @@ class Sphere(Environment):
         """Render the environment live through iterations as in OpenAI gym"""
 
         f = plt.figure()
-      
+
+        # Top down projection for 3d plot
         ax = plt.axes(projection = "3d")  
         ax.view_init(90, -90)
+
+        # Plot 3d-hemisphere
         phi = np.linspace(np.pi/2, np.pi, self.n_stacks)
         theta = np.linspace(0, 2*np.pi, self.n_slices)
         phi, theta = np.meshgrid(phi, theta)
@@ -315,8 +350,11 @@ class Sphere(Environment):
         y = np.sin(phi)*np.sin(theta)
         z = np.cos(phi)
         ax.plot_surface(x,y,z, color ='blue', alpha = 0.5)
+
         canvas = FigureCanvas(f)
         history = self.history[:history_length]
+
+        # Plot trajectory
         ax = self.plot_trajectory(history_data=history, ax=ax)
     
         if save_dir is not None:

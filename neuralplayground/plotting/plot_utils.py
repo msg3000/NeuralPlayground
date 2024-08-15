@@ -184,6 +184,47 @@ def make_plot_rate_map(h, ax, title, title_x, title_y, title_cbar):
     ax.set_yticks([])
     return ax
 
+def make_plot_rate_map_bounds(h, ax, title, title_x, title_y, title_cbar, rate_bound):
+    """plot function with formating of ratemap plot
+
+    Parameters
+    ----------
+    h: ndarray (nybins, nxbins)
+        Number of spikes falling on each bin through the recorded session, nybins number of bins in y axis,
+        nxbins number of bins in x axis
+    ax: mpl.axes._subplots.AxesSubplot (matplotlib axis from subplots)
+        axis from subplot from matplotlib where the ratemap will be plotted.
+    title: str
+        plot title, tetrode id by default when called
+    title_y:  str
+        y axis label, "depth" by default when called
+    title_x: str
+        x axis label, "width" by default when called
+    title_cbar: str
+        colorbar label, "spikes per bin" by default when called
+
+    Returns
+    -------
+    ax: mpl.axes._subplots.AxesSubplot (matplotlib axis from subplots)
+        Modified axis where ratemap is plotted
+    """
+
+    # Formating ratemap plot
+    config_vars = PLOT_CONFIG.RATEMAP
+    sc = ax.imshow(h, cmap="PRGn", vmin = -rate_bound, vmax = rate_bound)
+    cbar = plt.colorbar(sc, ax=ax, ticks=[-rate_bound, rate_bound], orientation="horizontal", fraction=0.046)
+    cbar.ax.set_xlabel(title_cbar, fontsize=config_vars.COLORBAR_LABEL_FONTSIZE)
+    cbar.ax.set_xticklabels(
+        [np.round(-rate_bound, decimals=2), np.round(rate_bound, decimals=2)], fontsize=config_vars.TICK_LABEL_FONTSIZE
+    )
+    ax.set_title(title, fontsize=config_vars.TITLE_FONTSIZE)
+    ax.set_ylabel(title_y, fontsize=config_vars.LABEL_FONTSIZE)
+    ax.set_xlabel(title_x, fontsize=config_vars.LABEL_FONTSIZE)
+    ax.grid(config_vars.GRID)
+    ax.set_xticks([])
+    ax.set_yticks([])
+    return ax
+
 
 def render_mpl_table(data, ax=None, **kwargs):
     """https://stackoverflow.com/questions/19726663/how-to-save-the-pandas-dataframe-series-data-as-a-figure

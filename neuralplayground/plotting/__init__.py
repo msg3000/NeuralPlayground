@@ -1,2 +1,2 @@
-from .plot_utils import make_plot_trajectories, make_plot_rate_map, make_agent_comparison, make_plot_trajectories_3d
+from .plot_utils import make_plot_trajectories, make_plot_rate_map, make_agent_comparison, make_plot_trajectories_3d, make_plot_rate_map_bounds
 from .whittington_2020_plotting_utils import PlotSim
