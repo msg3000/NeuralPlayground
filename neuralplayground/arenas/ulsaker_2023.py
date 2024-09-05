@@ -96,6 +96,24 @@ class Sphere(Environment):
         return np.cos(v_norm)*p + np.sin(v_norm)*v/v_norm
     
     @staticmethod
+    def logarithmic_map(p: np.ndarray, q: np.ndarray):
+        """ 
+        Apply the logarithmic map that projects point q on the sphere onto the tangent space of the point p
+
+        Parameters
+        ----------
+        p: (3,) - 3d-vector
+        q: (3,) - 3d-vector 
+
+        Returns
+        -------
+        (3,) - 3d-vecotr : Result of logarithmic map application on q with tangent space centred at p
+        """
+        proj = np.dot(p, q)
+        theta = np.arccos(proj)
+        return (q - p*proj)/np.sinc(theta/np.pi)
+    
+    @staticmethod
     def project_to_tangent(point: np.ndarray, vector: np.ndarray):
         """ 
         Given an arbitrary 3d-vector project it onto the tangent space of a point on a sphere
@@ -230,8 +248,11 @@ class Sphere(Environment):
             if normalize_step:
                 action = action / np.linalg.norm(action)
 
+            gravity = self.project_to_tangent(self.state[0], np.array([0,0,1]))
+            #gravity /= np.linalg.norm(gravity) if np.linalg.norm(gravity) != 0 else 1
+
             # Take a step along tangent vector in tangent plane --> action and project back to sphere
-            sphere_proj = self.exponential_map(self.state[0], 0.1*action)
+            sphere_proj = self.exponential_map(self.state[0], 0.1*(action - 0.15*gravity))
 
             # Approximate to discretised space
             new_state = self.normalize_state(sphere_proj)

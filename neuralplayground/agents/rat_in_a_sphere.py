@@ -131,6 +131,9 @@ class RatInASphere(AgentCore):
         self.obs_history = []
         self.create_transmat()
 
+        # Frequency map
+        self.freq_map = np.zeros(self.n_state)
+
     def reset(self):
         """
         Initialize the successor matrices, normalized transition matrix and observation variables (history and initialisation)
@@ -316,6 +319,7 @@ class RatInASphere(AgentCore):
             if self.initial_obs_variable is None:
                 self.curr_state = self.next_state
                 self.initial_obs_variable = True
+            self.freq_map[self.curr_state] += 1
             next_state = self.next_state
             a = np.array(self.curr_state)
             x = a.flatten()
@@ -372,7 +376,7 @@ class RatInASphere(AgentCore):
             sr_matrix = self.successor_rep_solution()
         evals, evecs = np.linalg.eig(sr_matrix)
         #rate_bound = np.max([np.abs(np.min(evecs.real)), np.abs(np.max(evecs.real))])
-        rate_bound = 0.3
+        rate_bound = 0.1
         r_out_im = evecs[:, eigen_vector].reshape((self.n_stacks, self.n_slices)).real
         return r_out_im, rate_bound
 
@@ -414,7 +418,7 @@ class RatInASphere(AgentCore):
 
             if ax is None:
                 f, ax = plt.subplots(1, 1, figsize=(4, 5))
-            make_plot_rate_map_bounds(rate_map_mat, ax, "Rate map: Eig" + str(eigen_vectors), "polar", "azimuthal", "Firing rate", rate_bound)
+            make_plot_rate_map(rate_map_mat, ax, "Rate map: Eig" + str(eigen_vectors), "azimuthal", "polar", "Firing rate")
         else:
             if ax is None:
                 f, ax = plt.subplots(1, len(eigen_vectors), figsize=(4 * len(eigen_vectors), 5))
@@ -424,9 +428,24 @@ class RatInASphere(AgentCore):
                 ]
             for i, eig in enumerate(eigen_vectors):
                 rate_map_mat, rate_bound = self.get_rate_map_matrix(sr_matrix, eigen_vector=eig)
-                make_plot_rate_map_bounds(rate_map_mat, ax[i], "Rate map: " + "Eig" + str(eig), "polar", "azimuthal", "Firing rate", rate_bound)
+                make_plot_rate_map(rate_map_mat, ax[i], "Rate map: " + "Eig" + str(eig), "azimuthal", "polar", "Firing rate")
         if save_path is None:
             pass
         else:
             plt.savefig(save_path, bbox_inches="tight")
             return ax
+        
+    def plot_freq_map(
+        self,
+        ax: mpl.axes.Axes = None,
+        save_path: str = None
+    ):
+        if ax is None:
+            fig, ax = plt.subplots(1,1,figsize=(4,5))
+
+        make_plot_rate_map(self.freq_map.reshape(self.n_stacks, self.n_slices), ax, "Frequency Map", "azimuthal", "polar", "Frequency")
+
+        if save_path is not None:
+            plt.savefig(save_path, bbox_inches="tight")
+           
+        return ax
