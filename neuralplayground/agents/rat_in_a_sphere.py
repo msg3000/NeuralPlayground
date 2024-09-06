@@ -370,15 +370,17 @@ class RatInASphere(AgentCore):
     def get_rate_map_matrix(
         self,
         sr_matrix=None,
-        eigen_vector: int = 10,
+        eigen_vector: Union[int, list, tuple] = None,
     ):
         if sr_matrix is None:
             sr_matrix = self.successor_rep_solution()
+        if eigen_vector is None:
+            eigen_vector = np.arange(self.n_slices * self.n_stacks)
         evals, evecs = np.linalg.eig(sr_matrix)
-        #rate_bound = np.max([np.abs(np.min(evecs.real)), np.abs(np.max(evecs.real))])
-        rate_bound = 0.1
-        r_out_im = evecs[:, eigen_vector].reshape((self.n_stacks, self.n_slices)).real
-        return r_out_im, rate_bound
+        if isinstance(eigen_vector, int):
+            return evecs[:, eigen_vector].reshape((self.n_stacks, self.n_slices)).real
+        r_out_im = [evecs[:, evec_idx].reshape((self.n_stacks, self.n_slices)).real for evec_idx in eigen_vector]
+        return r_out_im
 
     def plot_transition(self, T=None, save_path: str = None, ax: mpl.axes.Axes = None):
         """
@@ -414,7 +416,7 @@ class RatInASphere(AgentCore):
             eigen_vectors = random.randint(5, 19)
 
         if isinstance(eigen_vectors, int):
-            rate_map_mat, rate_bound = self.get_rate_map_matrix(sr_matrix, eigen_vector=eigen_vectors)
+            rate_map_mat= self.get_rate_map_matrix(sr_matrix, eigen_vector=eigen_vectors)
 
             if ax is None:
                 f, ax = plt.subplots(1, 1, figsize=(4, 5))
@@ -423,12 +425,13 @@ class RatInASphere(AgentCore):
             if ax is None:
                 f, ax = plt.subplots(1, len(eigen_vectors), figsize=(4 * len(eigen_vectors), 5))
             if isinstance(ax, mpl.axes.Axes):
-                ax = [
-                    ax,
-                ]
-            for i, eig in enumerate(eigen_vectors):
-                rate_map_mat, rate_bound = self.get_rate_map_matrix(sr_matrix, eigen_vector=eig)
-                make_plot_rate_map(rate_map_mat, ax[i], "Rate map: " + "Eig" + str(eig), "azimuthal", "polar", "Firing rate")
+                ax = [ax,]
+
+            rate_map_mats = self.get_rate_map_matrix(sr_matrix, eigen_vector=eigen_vectors)
+            for i, rate_map_mat in enumerate(rate_map_mats):
+                make_plot_rate_map(rate_map_mat, ax[i], "Rate map: " + "Eig" + str(eigen_vectors[i]), "azimuthal", "polar", "Firing rate")
+        
+        
         if save_path is None:
             pass
         else:
