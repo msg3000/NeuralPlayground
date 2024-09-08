@@ -56,6 +56,8 @@ class Sphere(Environment):
         environment_name: str = "sphere",
         n_stacks: int = 16,
         n_slices: int = 16,
+        gravity_mag: float = 0.1,
+        step_size: float = 0.1,
         **env_kwargs,
     ):
         """Initialise the class
@@ -68,12 +70,18 @@ class Sphere(Environment):
             Number of even discrete intervals to discretise polar angles
         n_slices: int
             Number of even discrete intervals to discretise azimuthal angles
+        gravity: float
+            A scalar between 0-1 indicating the effect of gravity
+        step_size: float
+            A scalar that reflects the step sizes to be taken along a unit direction
         
         """
         super().__init__(environment_name, **env_kwargs)
         self.metadata = {"env_kwargs": env_kwargs}
         self.n_stacks = n_stacks
         self.n_slices = n_slices
+        self.gravity_mag = gravity_mag
+        self.step_size = step_size
         self.state_dims_labels = ["x_pos", "y_pos", "z_pos"]
         self.reset()
 
@@ -249,10 +257,9 @@ class Sphere(Environment):
                 action = action / np.linalg.norm(action)
 
             gravity = self.project_to_tangent(self.state[0], np.array([0,0,1]))
-            #gravity /= np.linalg.norm(gravity) if np.linalg.norm(gravity) != 0 else 1
 
             # Take a step along tangent vector in tangent plane --> action and project back to sphere
-            sphere_proj = self.exponential_map(self.state[0], 0.1*(action - 0.15*gravity))
+            sphere_proj = self.exponential_map(self.state[0], self.step_size(action - self.gravity_mag*gravity))
 
             # Approximate to discretised space
             new_state = self.normalize_state(sphere_proj)
