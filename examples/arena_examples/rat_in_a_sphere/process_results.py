@@ -88,17 +88,44 @@ def read_in_models():
         agent, env, _ = sim_manager.load_results(os.path.join(variant, "spherical"))
         orth_agent, env, _ = sim_manager.load_results(os.path.join(variant, "orth_proj"))
         log_agent, env, _ = sim_manager.load_results(os.path.join(variant, "log_proj"))
-        models.append((agent, orth_agent, log_agent, variant.split("_")[1]))
+        models.append((agent, orth_agent, log_agent, variant.split("_")[1][2:]))
     return models
 
 def compile_all_results(models, eigs):
 
     for model in models:
         agent, orth_agent, log_agent, gravity= model
+
+        # Plot specific eigenvector results
         grid_cells = agent.get_rate_map_matrix(agent.srmat, eigs)
         orth_grid_cells = orth_agent.get_rate_map_matrix(orth_agent.srmat, eigs)
         log_grid_cells = log_agent.get_rate_map_matrix(log_agent.srmat, eigs)
         compile_result(grid_cells, orth_grid_cells, log_grid_cells, eigs, f"eigs_gravity_{gravity}")
+
+        # Compute gridness hist
+        grid_cells = agent.get_rate_map_matrix(agent.srmat)
+        orth_grid_cells = orth_agent.get_rate_map_matrix(orth_agent.srmat)
+        log_grid_cells = log_agent.get_rate_map_matrix(log_agent.srmat)
+        compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, eigs, gravity)
+
+def compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, gravity):
+    GridScorer_Stachenfeld2018 = GridScorer(N_STACKS + 1)
+    grid_scores, orth_scores, log_scores = [], [], []
+    for grid_cell, orth_grid_cell, log_grid_cell in zip(grid_cells, orth_grid_cells, log_grid_cells):
+        sac, grid_field_props = GridScorer_Stachenfeld2018.get_scores(grid_cell)
+        grid_scores.append(grid_field_props['gridscore'])
+
+        sac, grid_field_props = GridScorer_Stachenfeld2018.get_scores(orth_grid_cell)
+        orth_scores.append(grid_field_props['gridscore'])
+
+        sac, grid_field_props = GridScorer_Stachenfeld2018.get_scores(log_grid_cell)
+        log_scores.append(grid_field_props['gridscore'])
+    fig, ax = plt.subplots(1,3)
+    sns.histplot(grid_scores, ax=ax[0], bins=20, kde=True, color='red'), ax.set_title("Spherical coordinates")
+    sns.histplot(orth_scores, ax=ax[1], bins=20, kde=True, color='green'), ax.set_title("Orthogonal projection")
+    sns.histplot(log_scores, ax=ax[2], bins=20, kde=True, color='blue'), ax.set_title("Logarithmic projection")
+
+    fig.savefig(f"results/grid_hist_{gravity}")
 
 if __name__ == "__main__":
     models = read_in_models()
