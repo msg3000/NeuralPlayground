@@ -88,7 +88,7 @@ def read_in_models():
         agent, env, _ = sim_manager.load_results(os.path.join(variant, "spherical"))
         orth_agent, env, _ = sim_manager.load_results(os.path.join(variant, "orth_proj"))
         log_agent, env, _ = sim_manager.load_results(os.path.join(variant, "log_proj"))
-        models.append((agent, orth_agent, log_agent, variant[-1:-4:-1]))
+        models.append((agent, orth_agent, log_agent, variant.split("_")[1]))
     return models
 
 def compile_all_results(models, eigs):
