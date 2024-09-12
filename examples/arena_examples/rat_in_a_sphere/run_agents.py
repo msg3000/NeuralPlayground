@@ -88,7 +88,7 @@ def run_log_proj_agent(n_slices = 100, n_stacks = 100, gravity_mag = 0.15):
                 training_loop = TRAINING_LOOP,
                 training_loop_params = TRAINING_LOOP_PARAMS)
     
-    sim_orth.run_sim(f"models/gravity_{gravity_mag}/orth_proj")
+    sim_orth.run_sim(f"models/gravity_{gravity_mag}/log_proj")
 
 
 
