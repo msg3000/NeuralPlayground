@@ -100,9 +100,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     gravity_mag = args.gravity_mag
 
-    print("========= Beginning spherical agent =========== ")
-    run_spherical_agent(gravity_mag=gravity_mag)
-    print("========= Spherical agent complete =========== ")
+    # print("========= Beginning spherical agent =========== ")
+    # run_spherical_agent(gravity_mag=gravity_mag)
+    # print("========= Spherical agent complete =========== ")
     print("========= Beginning orthogonal projection agent =========== ")
     run_ortho_proj_agent(gravity_mag=gravity_mag)
     print("========= Orthogonal projection agent complete =========== ")
