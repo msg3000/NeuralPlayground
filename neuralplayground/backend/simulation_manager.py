@@ -372,14 +372,17 @@ class SingleSim(object):
         str_rep += f"Training loop params: {self.training_loop_params}\n"
         return str_rep
 
-    def load_results(self, results_path: str = None):
+    def load_results(self, results_path: str = None, load_train_hist = False):
         """Load the results of a simulation from a path"""
         if results_path is None:
             results_path = os.path.join(os.getcwd(), "results_sim")
         self.load_params(os.path.join(results_path))
         trained_agent = pd.read_pickle(os.path.join(results_path, "agent"))
         trained_env = pd.read_pickle(os.path.join(results_path, "arena"))
-        training_hist = pd.read_pickle(os.path.join(results_path, "training_hist.dict"))
+        if load_train_hist:
+            training_hist = pd.read_pickle(os.path.join(results_path, "training_hist.dict"))
+        else:
+            training_hist = None
         return trained_agent, trained_env, training_hist
 
     def show_logs(self, results_path: str = None, log_type: str = "error"):

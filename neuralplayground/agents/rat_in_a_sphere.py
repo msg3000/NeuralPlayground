@@ -89,6 +89,7 @@ class RatInASphere(AgentCore):
         lr_td: float = 1e-2,
         n_slices: float = 12,
         n_stacks: float = 12,
+        replicable: bool = True,
         **mod_kwargs,
     ):
         """
@@ -122,6 +123,7 @@ class RatInASphere(AgentCore):
         self.learning_rate = lr_td
         self.n_slices = n_slices
         self.n_stacks = n_stacks
+        self.replicable = replicable
         self.initial_obs_variable = None
         self.reset()
 
@@ -130,6 +132,9 @@ class RatInASphere(AgentCore):
         self.n_state = self.n_slices * self.n_stacks
         self.obs_history = []
         self.create_transmat()
+
+        if self.replicable:
+            np.random.seed(42) 
 
         # Frequency map
         self.freq_map = np.zeros(self.n_state)

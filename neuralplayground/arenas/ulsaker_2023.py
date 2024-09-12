@@ -259,7 +259,7 @@ class Sphere(Environment):
             gravity = self.project_to_tangent(self.state[0], np.array([0,0,1]))
 
             # Take a step along tangent vector in tangent plane --> action and project back to sphere
-            sphere_proj = self.exponential_map(self.state[0], self.step_size(action - self.gravity_mag*gravity))
+            sphere_proj = self.exponential_map(self.state[0], self.step_size*(action - self.gravity_mag*gravity))
 
             # Approximate to discretised space
             new_state = self.normalize_state(sphere_proj)

@@ -61,6 +61,7 @@ coverage.xml
 *.avi
 
 *.egg-info
+examples/arena_examples/rat_in_a_sphere/models
 
 # PyPI distribution / packages
 dist/
