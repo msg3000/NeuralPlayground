@@ -86,7 +86,7 @@ def read_in_models():
     models = []
     for variant in variants:
         agent, env, _ = sim_manager.load_results(os.path.join(variant, "spherical"))
-        orth_agent, env, _ = sim_manager.load_results(os.path.join(variant, "orth_proj"))
+        orth_agent, env, _ = sim_manager.load_results(os.path.join(variant, "vert_proj"))
         log_agent, env, _ = sim_manager.load_results(os.path.join(variant, "log_proj"))
         models.append((agent, orth_agent, log_agent, variant.split("_")[1][2:]))
     return models
@@ -97,10 +97,10 @@ def compile_all_results(models, eigs):
         agent, orth_agent, log_agent, gravity= model
 
         # Plot specific eigenvector results
-        # grid_cells = agent.get_rate_map_matrix(agent.srmat, eigs)
-        # orth_grid_cells = orth_agent.get_rate_map_matrix(orth_agent.srmat, eigs)
-        # log_grid_cells = log_agent.get_rate_map_matrix(log_agent.srmat, eigs)
-        # compile_result(grid_cells, orth_grid_cells, log_grid_cells, eigs, f"eigs_gravity_{gravity}")
+        grid_cells = agent.get_rate_map_matrix(agent.srmat, eigs)
+        orth_grid_cells = orth_agent.get_rate_map_matrix(orth_agent.srmat, eigs)
+        log_grid_cells = log_agent.get_rate_map_matrix(log_agent.srmat, eigs)
+        compile_result(grid_cells, orth_grid_cells, log_grid_cells, eigs, f"eigs_vert_gravity_{gravity}")
 
         # Compute gridness hist
         grid_cells = agent.get_rate_map_matrix(agent.srmat)
@@ -125,7 +125,7 @@ def compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, gravity):
     sns.histplot(orth_scores, ax=ax[1], bins=20, kde=True, color='green'), ax[1].set_title("Orthogonal projection")
     sns.histplot(log_scores, ax=ax[2], bins=20, kde=True, color='blue'), ax[2].set_title("Logarithmic projection")
 
-    fig.savefig(f"results/grid_hist_{gravity}")
+    fig.savefig(f"results/grid_v_hist_{gravity}")
 
 if __name__ == "__main__":
     models = read_in_models()
