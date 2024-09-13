@@ -142,6 +142,27 @@ class RatOnLogarithmicTangent(RatOnTangent):
     def obs_to_state(self, pos: ndarray):
         logarithmic_pos = Sphere.logarithmic_map(np.zeros(3), pos)[:2]
         return super().obs_to_state(logarithmic_pos)
-        
+    
+class RatOnVertical(RatOnTangent):
+    
+    def __init__(self, agent_name: str = "SR", discount: float = 0.9, threshold: float = 0.000001, lr_td: float = 0.01, room_width: float = 12, room_depth: float = 12, state_density: float = 1, twoD: bool = True, replicable: bool = True, **mod_kwargs):
+        super().__init__(agent_name, discount, threshold, lr_td, room_width, room_depth, state_density, twoD, replicable, **mod_kwargs)
+
+    def act(self, obs):
+        self.obs_history.append(obs)
+        if len(self.obs_history) >= 1000:
+            self.obs_history = [
+                obs,
+            ]
+
+        if len(obs) == 0:
+            action = None
+        else:
+            # Random policy
+            action = np.random.uniform(-1,1,3)
+            self.next_state = self.obs_to_state(obs[0][1:]) # Only pass in geometric coordinates
+            self.freq_map[self.next_state] += 1
+            action = np.array(action)
+        return action
     
 

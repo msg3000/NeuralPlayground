@@ -10,7 +10,7 @@ import numpy as np
 import argparse
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from mpl_toolkits.mplot3d import Axes3D
-from projection_agents import RatOnTangent, RatOnLogarithmicTangent
+from projection_agents import RatOnTangent, RatOnLogarithmicTangent, RatOnVertical
 
 # Global variables
 ENV_CLASS = Sphere
@@ -67,7 +67,7 @@ def run_ortho_proj_agent(n_slices = 100, n_stacks = 100, gravity_mag = 0.15):
     
     sim_orth.run_sim(f"models/gravity_{gravity_mag}/orth_proj")
 
-def run_log_proj_agent(n_slices = 100, n_stacks = 100, gravity_mag = 0.15):
+def run_vert_agent(n_slices = 100, n_stacks = 100, gravity_mag = 0.15):
 
     env_params = {"n_stacks": n_stacks,
              "n_slices": n_slices,
@@ -78,7 +78,7 @@ def run_log_proj_agent(n_slices = 100, n_stacks = 100, gravity_mag = 0.15):
                 "room_depth" : 3,
                 "state_density" : 12}
 
-    agent_class = RatOnLogarithmicTangent
+    agent_class = RatOnVertical
     
     sim_orth = SingleSim(simulation_id = SIM_ID,
                 agent_class = agent_class,
@@ -88,7 +88,8 @@ def run_log_proj_agent(n_slices = 100, n_stacks = 100, gravity_mag = 0.15):
                 training_loop = TRAINING_LOOP,
                 training_loop_params = TRAINING_LOOP_PARAMS)
     
-    sim_orth.run_sim(f"models/gravity_{gravity_mag}/log_proj")
+    sim_orth.run_sim(f"models/gravity_{gravity_mag}/vert_proj")
+       
 
 
 
@@ -100,15 +101,20 @@ if __name__ == "__main__":
     args = parser.parse_args()
     gravity_mag = args.gravity_mag
 
-    print("========= Beginning spherical agent =========== ")
-    run_spherical_agent(gravity_mag=gravity_mag)
-    print("========= Spherical agent complete =========== ")
+
+    # print("========= Beginning spherical agent =========== ")
+    # run_spherical_agent(gravity_mag=gravity_mag)
+    # print("========= Spherical agent complete =========== ")
     # print("========= Beginning orthogonal projection agent =========== ")
     # run_ortho_proj_agent(gravity_mag=gravity_mag)
     # print("========= Orthogonal projection agent complete =========== ")
     # print("========= Beginning logarithmic projection agent =========== ")
     # run_log_proj_agent(gravity_mag=gravity_mag)
     # print("========= Logarithmic projection agent complete =========== ")
+    
+    print("========= Beginning spherical agent =========== ")
+    run_vert_agent(gravity_mag=gravity_mag)
+    print("========= Spherical agent complete =========== ")
 
 
 
