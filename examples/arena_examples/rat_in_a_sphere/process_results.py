@@ -106,7 +106,7 @@ def compile_all_results(models, eigs):
         grid_cells = agent.get_rate_map_matrix(agent.srmat)
         orth_grid_cells = orth_agent.get_rate_map_matrix(orth_agent.srmat)
         log_grid_cells = log_agent.get_rate_map_matrix(log_agent.srmat)
-        compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, eigs, gravity)
+        compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, gravity)
 
 def compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, gravity):
     GridScorer_Stachenfeld2018 = GridScorer(N_STACKS + 1)
