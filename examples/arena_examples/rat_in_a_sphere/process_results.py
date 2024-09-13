@@ -103,10 +103,10 @@ def compile_all_results(models, eigs):
         compile_result(grid_cells, orth_grid_cells, log_grid_cells, eigs, f"eigs_gravity_{gravity}")
 
         # Compute gridness hist
-        grid_cells = agent.get_rate_map_matrix(agent.srmat)
-        orth_grid_cells = orth_agent.get_rate_map_matrix(orth_agent.srmat)
-        log_grid_cells = log_agent.get_rate_map_matrix(log_agent.srmat)
-        compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, gravity)
+        # grid_cells = agent.get_rate_map_matrix(agent.srmat)
+        # orth_grid_cells = orth_agent.get_rate_map_matrix(orth_agent.srmat)
+        # log_grid_cells = log_agent.get_rate_map_matrix(log_agent.srmat)
+        # compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, gravity)
 
 def compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, gravity):
     GridScorer_Stachenfeld2018 = GridScorer(N_STACKS + 1)
@@ -121,9 +121,9 @@ def compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, gravity):
         sac, grid_field_props = GridScorer_Stachenfeld2018.get_scores(log_grid_cell)
         log_scores.append(grid_field_props['gridscore'])
     fig, ax = plt.subplots(1,3)
-    sns.histplot(grid_scores, ax=ax[0], bins=20, kde=True, color='red'), ax.set_title("Spherical coordinates")
-    sns.histplot(orth_scores, ax=ax[1], bins=20, kde=True, color='green'), ax.set_title("Orthogonal projection")
-    sns.histplot(log_scores, ax=ax[2], bins=20, kde=True, color='blue'), ax.set_title("Logarithmic projection")
+    sns.histplot(grid_scores, ax=ax[0], bins=20, kde=True, color='red'), ax[0].set_title("Spherical coordinates")
+    sns.histplot(orth_scores, ax=ax[1], bins=20, kde=True, color='green'), ax[1].set_title("Orthogonal projection")
+    sns.histplot(log_scores, ax=ax[2], bins=20, kde=True, color='blue'), ax[2].set_title("Logarithmic projection")
 
     fig.savefig(f"results/grid_hist_{gravity}")
 
