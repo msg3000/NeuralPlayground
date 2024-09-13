@@ -97,16 +97,16 @@ def compile_all_results(models, eigs):
         agent, orth_agent, log_agent, gravity= model
 
         # Plot specific eigenvector results
-        grid_cells = agent.get_rate_map_matrix(agent.srmat, eigs)
-        orth_grid_cells = orth_agent.get_rate_map_matrix(orth_agent.srmat, eigs)
-        log_grid_cells = log_agent.get_rate_map_matrix(log_agent.srmat, eigs)
-        compile_result(grid_cells, orth_grid_cells, log_grid_cells, eigs, f"eigs_gravity_{gravity}")
+        # grid_cells = agent.get_rate_map_matrix(agent.srmat, eigs)
+        # orth_grid_cells = orth_agent.get_rate_map_matrix(orth_agent.srmat, eigs)
+        # log_grid_cells = log_agent.get_rate_map_matrix(log_agent.srmat, eigs)
+        # compile_result(grid_cells, orth_grid_cells, log_grid_cells, eigs, f"eigs_gravity_{gravity}")
 
         # Compute gridness hist
-        # grid_cells = agent.get_rate_map_matrix(agent.srmat)
-        # orth_grid_cells = orth_agent.get_rate_map_matrix(orth_agent.srmat)
-        # log_grid_cells = log_agent.get_rate_map_matrix(log_agent.srmat)
-        # compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, gravity)
+        grid_cells = agent.get_rate_map_matrix(agent.srmat)
+        orth_grid_cells = orth_agent.get_rate_map_matrix(orth_agent.srmat)
+        log_grid_cells = log_agent.get_rate_map_matrix(log_agent.srmat)
+        compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, gravity)
 
 def compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, gravity):
     GridScorer_Stachenfeld2018 = GridScorer(N_STACKS + 1)
