@@ -160,7 +160,7 @@ class RatOnVertical(RatOnTangent):
         else:
             # Random policy
             action = np.random.uniform(-1,1,3)
-            self.next_state = self.obs_to_state(obs[0][1:]) # Only pass in geometric coordinates
+            self.next_state = self.obs_to_state(obs[0][1:] + np.array([0,0.5])) # Only pass in geometric coordinates
             self.freq_map[self.next_state] += 1
             action = np.array(action)
         return action
