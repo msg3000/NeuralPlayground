@@ -1,0 +1,26 @@
+<mujoco model="hemisphere_rat">
+    <option gravity="0 0 -9.81" timestep="0.01"/>
+    
+    <visual>
+        <global offwidth="800" offheight="600"/>
+    </visual>
+    
+    <asset>
+        <!-- If using a mesh, include it here -->
+        <!-- <mesh name="hemisphere_mesh" file="hemisphere.stl"/> -->
+    </asset>
+    
+    <worldbody>
+        <!-- Add a light source -->
+        <light name="light0" pos="0 0 3" dir="0 0 -1" diffuse="1 1 1" specular="0.3 0.3 0.3" directional="true"/>
+        
+        <!-- Replace hemisphere with a plane for testing -->
+        <geom name="ground" type="plane" size="2 2 0.1" pos="0 0 0" rgba="0.7 0.7 0.7 1" contype="0" conaffinity="0"/>
+    
+        <!-- Rat agent (dynamic body) -->
+        <body name="rat" pos="0 0 0.05">
+            <joint name="rat_free" type="free"/>
+            <geom name="rat_geom" type="sphere" size="0.05" rgba="0.8 0.2 0.2 1" mass="0.1" friction="1 0.005 0.0001"/>
+        </body>
+    </worldbody>
+</mujoco>
