@@ -90,6 +90,7 @@ class RatInASphere(AgentCore):
         n_slices: float = 12,
         n_stacks: float = 12,
         replicable: bool = True,
+        natural_movement: bool = True,
         **mod_kwargs,
     ):
         """
@@ -126,6 +127,7 @@ class RatInASphere(AgentCore):
         self.replicable = replicable
         self.initial_obs_variable = None
         self.reset()
+        self.prev_action = 0
 
         # Variables for the SR-agent state space
       
@@ -202,7 +204,12 @@ class RatInASphere(AgentCore):
             action = None
         else:
             # Random policy
-            action = np.random.uniform(-1,1,3)
+            if self.prev_action is not None:
+                action = np.random.uniform(-1,1,3)
+                self.prev_action = action
+            else:
+                action = self.prev_action + np.random.vonmises(0, 0.1, 3)
+                
             self.next_state = self.obs_to_state(obs[1])
             action = np.array(action)
         return action

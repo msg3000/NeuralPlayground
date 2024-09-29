@@ -165,8 +165,8 @@ class Sphere(Environment):
 
         Parameters
         ----------
-        theta: float = polar angle
-        phi: float =  azimuthal angle
+        theta: float = azimuthal angle
+        phi: float =  polar angle
 
         Returns
         -------

@@ -1,6 +1,3 @@
-from neuralplayground.arenas import Sphere
-from neuralplayground.agents import Stachenfeld2018, RatInASphere
-from neuralplayground.backend import episode_based_training_loop
 from neuralplayground.plotting.plot_utils import make_plot_rate_map
 from neuralplayground.backend import SingleSim
 from neuralplayground.comparison import GridScorer
@@ -100,13 +97,48 @@ def compile_all_results(models, eigs):
         grid_cells = agent.get_rate_map_matrix(agent.srmat, eigs)
         orth_grid_cells = orth_agent.get_rate_map_matrix(orth_agent.srmat, eigs)
         log_grid_cells = log_agent.get_rate_map_matrix(log_agent.srmat, eigs)
-        compile_result(grid_cells, orth_grid_cells, log_grid_cells, eigs, f"eigs_vert_gravity_{gravity}")
+        #compile_result(grid_cells, orth_grid_cells, log_grid_cells, eigs, f"eigs_vert_gravity_{gravity}")
 
         # Compute gridness hist
-        grid_cells = agent.get_rate_map_matrix(agent.srmat)
-        orth_grid_cells = orth_agent.get_rate_map_matrix(orth_agent.srmat)
-        log_grid_cells = log_agent.get_rate_map_matrix(log_agent.srmat)
-        compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, gravity)
+        # grid_cells = agent.get_rate_map_matrix(agent.srmat)
+        # orth_grid_cells = orth_agent.get_rate_map_matrix(orth_agent.srmat)
+        # log_grid_cells = log_agent.get_rate_map_matrix(log_agent.srmat)
+        # compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, gravity)
+
+        for grid_id, grid_cell in zip(eigs, grid_cells):
+            proj_3d_map(grid_cell, grid_id=grid_id)
+
+def proj_3d_map(grid_cell, axes='yz', grid_id = None):
+    phi = np.linspace(np.pi/2, np.pi, N_STACKS)
+    theta = np.linspace(0, 2*np.pi, N_SLICES)
+    phi, theta = np.meshgrid(phi, theta)
+    x = np.sin(phi)*np.cos(theta)
+    y = np.sin(phi)*np.sin(theta)
+    z = np.cos(phi)
+    x,y,z = x.flatten(), y.flatten(), z.flatten()
+    grid_cell = grid_cell.flatten()
+
+    num_bins = 100 
+    x_edges = np.linspace(-1, 1, num_bins)
+    y_edges = np.linspace(-1, 1, num_bins)
+
+    # Compute 2D histogram
+    hist, x_edges, y_edges = np.histogram2d(x, y, bins=[x_edges, y_edges], weights=grid_cell)
+
+    # Normalize by counts to get average firing rate per bin
+    counts, _, _ = np.histogram2d(x, y, bins=[x_edges, y_edges])
+    average_firing_rate = hist / counts
+    average_firing_rate = np.nan_to_num(average_firing_rate)  # Replace NaNs with zero
+
+    # Plot heatmap
+    plt.figure(figsize=(8, 6))
+    plt.imshow(average_firing_rate.T, origin='lower', extent=[x_edges[0], x_edges[-1], y_edges[0], y_edges[-1]],
+            aspect='auto', cmap='jet')
+    plt.colorbar(label='Average Firing Rate')
+    plt.xlabel('X')
+    plt.ylabel('Y')
+    plt.title('Firing Rate Heatmap on XY Plane')
+    plt.savefig(f"results/test_proj/proj_{grid_id}")
 
 def compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, gravity):
     GridScorer_Stachenfeld2018 = GridScorer(N_STACKS + 1)
