@@ -118,21 +118,22 @@ def proj_3d_map(grid_cell, axes='yz', grid_id = None):
     x,y,z = x.flatten(), y.flatten(), z.flatten()
     grid_cell = grid_cell.flatten()
 
-    num_bins = 100 
+    num_bins = 32 
     x_edges = np.linspace(-1, 1, num_bins)
     y_edges = np.linspace(-1, 1, num_bins)
+    z_edges = np.linspace(-1, 0, num_bins)
 
     # Compute 2D histogram
-    hist, x_edges, y_edges = np.histogram2d(x, y, bins=[x_edges, y_edges], weights=grid_cell)
+    hist, x_edges, z_edges = np.histogram2d(x, z, bins=[x_edges, z_edges], weights=grid_cell)
 
     # Normalize by counts to get average firing rate per bin
-    counts, _, _ = np.histogram2d(x, y, bins=[x_edges, y_edges])
+    counts, _, _ = np.histogram2d(x, z, bins=[x_edges, z_edges])
     average_firing_rate = hist / counts
     average_firing_rate = np.nan_to_num(average_firing_rate)  # Replace NaNs with zero
 
     # Plot heatmap
     plt.figure(figsize=(8, 6))
-    plt.imshow(average_firing_rate.T, origin='lower', extent=[x_edges[0], x_edges[-1], y_edges[0], y_edges[-1]],
+    plt.imshow(average_firing_rate.T, origin='lower', extent=[x_edges[0], x_edges[-1], z_edges[0], z_edges[-1]],
             aspect='auto', cmap='jet')
     plt.colorbar(label='Average Firing Rate')
     plt.xlabel('X')
