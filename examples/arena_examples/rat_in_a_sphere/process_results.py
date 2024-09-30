@@ -118,7 +118,7 @@ def proj_3d_map(grid_cell, axes='yz', grid_id = None):
     x,y,z = x.flatten(), y.flatten(), z.flatten()
     grid_cell = grid_cell.flatten()
 
-    num_bins = 32 
+    num_bins = 16
     x_edges = np.linspace(-1, 1, num_bins)
     y_edges = np.linspace(-1, 1, num_bins)
     z_edges = np.linspace(-1, 0, num_bins)
