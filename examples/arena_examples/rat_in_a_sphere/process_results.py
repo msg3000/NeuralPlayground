@@ -106,9 +106,9 @@ def compile_all_results(models, eigs):
         # compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, gravity)
 
         for grid_id, grid_cell in zip(eigs, grid_cells):
-            proj_3d_map(grid_cell, grid_id=grid_id)
+            proj_3d_map(grid_cell, grid_id=grid_id, model_name=gravity)
 
-def proj_3d_map(grid_cell, axes='yz', grid_id = None):
+def proj_3d_map(grid_cell, axes='yz', grid_id = None, model_name = None):
     phi = np.linspace(np.pi/2, np.pi, N_STACKS)
     theta = np.linspace(0, 2*np.pi, N_SLICES)
     phi, theta = np.meshgrid(phi, theta)
@@ -118,28 +118,28 @@ def proj_3d_map(grid_cell, axes='yz', grid_id = None):
     x,y,z = x.flatten(), y.flatten(), z.flatten()
     grid_cell = grid_cell.flatten()
 
-    num_bins = 16
+    num_bins = 36
     x_edges = np.linspace(-1, 1, num_bins)
     y_edges = np.linspace(-1, 1, num_bins)
     z_edges = np.linspace(-1, 0, num_bins)
 
     # Compute 2D histogram
-    hist, x_edges, z_edges = np.histogram2d(x, z, bins=[x_edges, z_edges], weights=grid_cell)
+    hist, y_edges, z_edges = np.histogram2d(y, z, bins=[y_edges, z_edges], weights=grid_cell)
 
     # Normalize by counts to get average firing rate per bin
-    counts, _, _ = np.histogram2d(x, z, bins=[x_edges, z_edges])
+    counts, _, _ = np.histogram2d(y, z, bins=[y_edges, z_edges])
     average_firing_rate = hist / counts
     average_firing_rate = np.nan_to_num(average_firing_rate)  # Replace NaNs with zero
 
     # Plot heatmap
     plt.figure(figsize=(8, 6))
-    plt.imshow(average_firing_rate.T, origin='lower', extent=[x_edges[0], x_edges[-1], z_edges[0], z_edges[-1]],
+    plt.imshow(average_firing_rate.T, origin='lower', extent=[y_edges[0], y_edges[-1], z_edges[0], z_edges[-1]],
             aspect='auto', cmap='jet')
     plt.colorbar(label='Average Firing Rate')
     plt.xlabel('X')
     plt.ylabel('Y')
     plt.title('Firing Rate Heatmap on XY Plane')
-    plt.savefig(f"results/test_proj/proj_{grid_id}")
+    plt.savefig(f"results/test_proj/proj_{model_name}_{grid_id}")
 
 def compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, gravity):
     GridScorer_Stachenfeld2018 = GridScorer(N_STACKS + 1)
