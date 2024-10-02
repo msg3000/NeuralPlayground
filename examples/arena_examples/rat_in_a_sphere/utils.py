@@ -33,7 +33,7 @@ def compute_sparsity_info(p: np.ndarray, X: np.ndarray):
     """ Sparsity index
     """
 
-    p, X = p.flatten(), X.flatten()
+    p, X = p.flatten(), np.abs(X.flatten())
     return (np.sum(p*X)**2) / np.sum(p*(X**2))
 
 def make_boxplot(ax, data, labels, x_label, y_label):
