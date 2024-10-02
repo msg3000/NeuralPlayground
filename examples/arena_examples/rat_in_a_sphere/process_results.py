@@ -9,7 +9,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from projection_agents import RatOnTangent, RatOnLogarithmicTangent
 from scipy import interpolate
 import os
-
+from utils import *
 
 N_SLICES = N_STACKS = 36
 
@@ -90,6 +90,10 @@ def read_in_models():
 
 def compile_all_results(models, eigs):
 
+    grid_cell_spatial = []
+    grid_cell_sparsity = []
+    labels = []
+
     for model in models:
         agent, orth_agent, log_agent, gravity= model
 
@@ -100,13 +104,38 @@ def compile_all_results(models, eigs):
         #compile_result(grid_cells, orth_grid_cells, log_grid_cells, eigs, f"eigs_vert_gravity_{gravity}")
 
         # Compute gridness hist
-        # grid_cells = agent.get_rate_map_matrix(agent.srmat)
-        # orth_grid_cells = orth_agent.get_rate_map_matrix(orth_agent.srmat)
-        # log_grid_cells = log_agent.get_rate_map_matrix(log_agent.srmat)
+        grid_cells = agent.get_rate_map_matrix(agent.srmat)
+        orth_grid_cells = orth_agent.get_rate_map_matrix(orth_agent.srmat)
+        log_grid_cells = log_agent.get_rate_map_matrix(log_agent.srmat)
         # compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, gravity)
 
-        for grid_id, grid_cell in zip(eigs, grid_cells):
-            proj_3d_map(grid_cell, grid_id=grid_id, model_name=gravity)
+        labels.append(f"g = 0.{gravity}")
+        spatial_info = []
+        sparsity_info = []
+
+        p = agent.freq_map / np.sum(agent.freq_map)
+
+        for grid_cell in grid_cells:
+            spatial_info.append(compute_spatial_info(p, grid_cell))
+            sparsity_info.append(compute_sparsity_info(p, grid_cell))
+        
+        grid_cell_spatial.append(spatial_info)
+        grid_cell_sparsity.append(sparsity_info)
+
+        #for grid_id, grid_cell in zip(eigs, grid_cells):
+        #   proj_3d_map(grid_cell, grid_id=grid_id, model_name=gravity)
+    fig, ax = plt.subplots(figsize=(16,8))
+    ax = make_boxplot(ax, grid_cell_spatial, labels, "Gravity strength", "Spatial information")
+    plt.savefig("results/spatial_info")
+    plt.close()
+
+    fig, ax = plt.subplots(figsize=(16,8))
+    ax = make_boxplot(ax, grid_cell_sparsity, labels, "Gravity strength", "Sparsity index")
+    plt.savefig("results/sparsity_info")
+    plt.close()
+
+
+
 
 def proj_3d_map(grid_cell, axes='yz', grid_id = None, model_name = None):
     phi = np.linspace(np.pi/2, np.pi, N_STACKS)
