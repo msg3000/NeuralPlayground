@@ -23,7 +23,7 @@ class RatOnTangent(Stachenfeld2018):
 
         # Map the observed position to the closest bin indices
         x_index = int(np.round((pos[0] - (-self.room_width / 2)) / bin_size_x))
-        y_index = int(np.round((pos[1] - (-self.room_depth)/2) / bin_size_y))
+        y_index = int(np.round((pos[1] - (-self.room_depth/2)) / bin_size_y))
 
         # Clamp indices to ensure they are within valid bounds
         x_index = np.clip(x_index, 0, self.width-1)
@@ -148,6 +148,23 @@ class RatOnVertical(RatOnTangent):
     def __init__(self, agent_name: str = "SR", discount: float = 0.9, threshold: float = 0.000001, lr_td: float = 0.01, room_width: float = 12, room_depth: float = 12, state_density: float = 1, twoD: bool = True, replicable: bool = True, **mod_kwargs):
         super().__init__(agent_name, discount, threshold, lr_td, room_width, room_depth, state_density, twoD, replicable, **mod_kwargs)
 
+    def obs_to_state(self, pos: ndarray):
+        # Compute the bin size in both x and y directions
+        bin_size_x = self.room_width / (self.width - 1)
+        bin_size_y = self.room_depth / (self.depth - 1)
+
+        # Map the observed position to the closest bin indices
+        x_index = int(np.round((pos[0] - (-self.room_width / 2)) / bin_size_x))
+        y_index = self.depth -1 - int(np.round((pos[1] - (-self.room_depth)) / bin_size_y))
+
+        # Clamp indices to ensure they are within valid bounds
+        x_index = np.clip(x_index, 0, self.width-1)
+        y_index = np.clip(y_index, 0, self.depth-1)
+
+        # Convert 2D (x_index, y_index) to a single state index in the linear state space
+        curr_state = y_index * self.width + x_index
+
+        return curr_state
     def act(self, obs):
         self.obs_history.append(obs)
         if len(self.obs_history) >= 1000:
@@ -160,7 +177,7 @@ class RatOnVertical(RatOnTangent):
         else:
             # Random policy
             action = np.random.uniform(-1,1,3)
-            self.next_state = self.obs_to_state(obs[0][1:] + np.array([0,0.5])) # Only pass in geometric coordinates
+            self.next_state = self.obs_to_state(obs[0][1:]) # Only pass in geometric coordinates
             self.freq_map[self.next_state] += 1
             action = np.array(action)
         return action

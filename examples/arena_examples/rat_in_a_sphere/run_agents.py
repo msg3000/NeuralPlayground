@@ -89,6 +89,29 @@ def run_log_proj_agent(n_slices = 100, n_stacks = 100, gravity_mag = 0.15):
                 training_loop_params = TRAINING_LOOP_PARAMS)
     
     sim_orth.run_sim(f"models/gravity_{gravity_mag}/log_proj")
+
+def run_vert_agent(n_slices = 100, n_stacks = 100, gravity_mag = 0.15):
+
+    env_params = {"n_stacks": n_stacks,
+             "n_slices": n_slices,
+             "gravity_mag": gravity_mag,
+             "step_size": 0.1}
+   
+    agent_params = {"room_width" : 2,
+                "room_depth" : 2,
+                "state_density" : 25.5}
+
+    agent_class = RatOnVertical
+    
+    sim_orth = SingleSim(simulation_id = SIM_ID,
+                agent_class = agent_class,
+                agent_params = agent_params,
+                env_class = ENV_CLASS,
+                env_params = env_params,
+                training_loop = TRAINING_LOOP,
+                training_loop_params = TRAINING_LOOP_PARAMS)
+    
+    sim_orth.run_sim(f"models/gravity_{gravity_mag}/vert_proj")
        
 
 
@@ -110,11 +133,10 @@ if __name__ == "__main__":
     print("========= Orthogonal projection agent complete =========== ")
     print("========= Beginning logarithmic projection agent =========== ")
     run_log_proj_agent(gravity_mag=gravity_mag)
-    print("========= Logarithmic projection agent complete =========== ")
-    
-    # print("========= Beginning spherical agent =========== ")
-    # run_vert_agent(gravity_mag=gravity_mag)
-    # print("========= Spherical agent complete =========== ")
+    print("========= Logarithmic projection agent complete =========== ") 
+    print("========= Beginning spherical agent =========== ")
+    run_vert_agent(gravity_mag=gravity_mag)
+    print("========= Spherical agent complete =========== ")
 
 
 
