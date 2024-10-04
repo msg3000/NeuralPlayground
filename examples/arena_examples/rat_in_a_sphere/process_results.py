@@ -71,11 +71,11 @@ def compile_all_results(models, eigs):
                                    vert_grid_cells, eigs, f"gravity_{gravity}")
 
         # Compute gridness hist
-        # grid_cells = agent.get_rate_map_matrix(agent.srmat)
-        # orth_grid_cells = orth_agent.get_rate_map_matrix(orth_agent.srmat)
-        # log_grid_cells = log_agent.get_rate_map_matrix(log_agent.srmat)
-        # vert_grid_cells = vert_agent.get_rate_map_matrix(vert_agent.srmat)
-        # compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, vert_grid_cells, gravity)
+        grid_cells = agent.get_rate_map_matrix(agent.srmat)
+        orth_grid_cells = orth_agent.get_rate_map_matrix(orth_agent.srmat)
+        log_grid_cells = log_agent.get_rate_map_matrix(log_agent.srmat)
+        vert_grid_cells = vert_agent.get_rate_map_matrix(vert_agent.srmat)
+        #compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, vert_grid_cells, gravity)
 
         # Spatial info and sparsity info
         labels.append(f"g = 0.{gravity}")
