@@ -78,17 +78,17 @@ def compile_all_results(models, eigs):
         # compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, vert_grid_cells, gravity)
 
         # Spatial info and sparsity info
-        # labels.append(f"g = 0.{gravity}")
-        # spatial_info = []
-        # sparsity_info = []
-        # p = agent.freq_map / np.sum(agent.freq_map)
+        labels.append(f"g = 0.{gravity}")
+        spatial_info = []
+        sparsity_info = []
+        p = agent.freq_map / np.sum(agent.freq_map)
 
-        # for grid_cell in grid_cells:
-        #     spatial_info.append(compute_spatial_info(p, grid_cell))
-        #     sparsity_info.append(compute_sparsity_info(p, grid_cell))
+        for grid_cell in grid_cells:
+            spatial_info.append(compute_spatial_info(p, grid_cell))
+            sparsity_info.append(compute_sparsity_info(p, grid_cell))
         
-        # grid_cell_spatial.append(spatial_info)
-        # grid_cell_sparsity.append(sparsity_info)
+        grid_cell_spatial.append(spatial_info)
+        grid_cell_sparsity.append(sparsity_info)
 
         #for grid_id, grid_cell in zip(eigs, grid_cells):
         #   proj_3d_map(grid_cell, grid_id=grid_id, model_name=gravity)

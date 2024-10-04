@@ -98,7 +98,7 @@ def run_vert_agent(n_slices = 100, n_stacks = 100, gravity_mag = 0.15):
              "step_size": 0.1}
    
     agent_params = {"room_width" : 2,
-                "room_depth" : 2,
+                "room_depth" : 1,
                 "state_density" : 25.5}
 
     agent_class = RatOnVertical
