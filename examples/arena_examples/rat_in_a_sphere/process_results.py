@@ -39,7 +39,7 @@ def format_qualitative_results(grid_cells, orth_grid_cells, log_grid_cells, vert
         sac, grid_field_props = GridScorer_Stachenfeld2018.get_scores(grid_cells[idx])
         plot_grid_spherical_res(axes[idx], grid_cells[idx], sac, grid_field_props["gridscore"],
                                 grid_field_props['rotationCorrVals'], heading = idx == 0)
-    fig.savefig(f"results/{save_path}/sphere_cells")
+    fig.savefig(f"results/{save_path}/sphere_cells.pdf")
     plt.close()
 
     fig, axes = plt.subplots(len(eig_numbers), 3, figsize=(20, 24))
@@ -48,7 +48,7 @@ def format_qualitative_results(grid_cells, orth_grid_cells, log_grid_cells, vert
     for idx, x in enumerate(eig_numbers):
         axes[idx,0].axis('off')
         plot_grid_proj_res(axes[idx], orth_grid_cells[idx], log_grid_cells[idx], vert_grid_cells[idx], heading = idx == 0)
-    fig.savefig(f"results/{save_path}/proj_cells")
+    fig.savefig(f"results/{save_path}/proj_cells.pdf")
     plt.close()
 
 
@@ -95,12 +95,12 @@ def compile_all_results(models, eigs):
 
     fig, ax = plt.subplots(figsize=(16,8))
     ax = make_boxplot(ax, grid_cell_spatial, labels, "Gravity strength", "Spatial information")
-    plt.savefig("results/spatial_info")
+    plt.savefig("results/spatial_info.pdf")
     plt.close()
 
     fig, ax = plt.subplots(figsize=(16,8))
     ax = make_boxplot(ax, grid_cell_sparsity, labels, "Gravity strength", "Sparsity index")
-    plt.savefig("results/sparsity_info")
+    plt.savefig("results/sparsity_info.pdf")
     plt.close()
 
 
@@ -121,13 +121,13 @@ def compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, vert_grid
         ac, grid_field_props = GridScorer_Stachenfeld2018.get_scores(vert_grid_cell)
         vert_scores.append(grid_field_props['gridscore'])
 
-    fig, ax = plt.subplots(1,4, figsize = (24, 20))
+    fig, ax = plt.subplots(1,4, figsize = (15, 8))
     sns.histplot(grid_scores, ax=ax[0], bins=20, kde=True, color='red'), ax[0].set_title("Spherical coordinates")
     sns.histplot(orth_scores, ax=ax[1], bins=20, kde=True, color='green'), ax[1].set_title("Orthogonal projection")
     sns.histplot(log_scores, ax=ax[2], bins=20, kde=True, color='blue'), ax[2].set_title("Logarithmic projection")
     sns.histplot(vert_scores, ax=ax[3], bins=20, kde=True, color='purple'), ax[3].set_title("Vertical projection")
 
-    fig.savefig(f"results/gravity_{gravity}/gridness_hist")
+    fig.savefig(f"results/gravity_{gravity}/gridness_hist.pdf")
 
 if __name__ == "__main__":
     models = read_in_models()
