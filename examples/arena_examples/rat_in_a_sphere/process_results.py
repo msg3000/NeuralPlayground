@@ -17,14 +17,14 @@ def plot_grid_spherical_res(ax, grid_cell, sac_plot, grid_score, corr_dict, head
 
     plot_on_3d_surface(ax[0], grid_cell, N_SLICES, N_STACKS, heading)
     make_plot_rate_map(grid_cell, ax[1], "Spherical coordinates" if heading else "", "Azimuthal", "Polar", "Firing rate")
-    make_plot_rate_map(sac_plot, ax[2], f"SAC (gridscore = {grid_score:.3f})" if heading else "", "", "", "Firing rate")
+    make_plot_rate_map(sac_plot, ax[2], f"SAC (gridscore = {grid_score:.3f})", "", "", "Firing rate")
     plot_rotation_correlation_curve(ax[3], corr_dict, heading=heading)
 
 def plot_grid_proj_res(ax, orth_grid_cell, log_grid_cell, vert_grid_cell, heading = False):
 
     make_plot_rate_map(orth_grid_cell, ax[0], "Orthogonal projection (XY)" if heading else "", "x", "y", "Firing rate")
     make_plot_rate_map(log_grid_cell, ax[1], "Logarithmic projection (XY)" if heading else "", "x", "y", "Firing rate")
-    make_plot_rate_map(log_grid_cell, ax[2], "Orthogonal projection (YZ)" if heading else "", "y", "z", "Firing rate")
+    make_plot_rate_map(vert_grid_cell, ax[2], "Orthogonal projection (YZ)" if heading else "", "y", "z", "Firing rate")
 
 def format_qualitative_results(grid_cells, orth_grid_cells, log_grid_cells, vert_grid_cells, eig_numbers, save_path):
     os.makedirs(f"results/{save_path}", exist_ok=True)
@@ -71,24 +71,24 @@ def compile_all_results(models, eigs):
                                    vert_grid_cells, eigs, f"gravity_{gravity}")
 
         # Compute gridness hist
-        grid_cells = agent.get_rate_map_matrix(agent.srmat)
-        orth_grid_cells = orth_agent.get_rate_map_matrix(orth_agent.srmat)
-        log_grid_cells = log_agent.get_rate_map_matrix(log_agent.srmat)
-        vert_grid_cells = vert_agent.get_rate_map_matrix(vert_agent.srmat)
-        compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, vert_grid_cells, gravity)
+        # grid_cells = agent.get_rate_map_matrix(agent.srmat)
+        # orth_grid_cells = orth_agent.get_rate_map_matrix(orth_agent.srmat)
+        # log_grid_cells = log_agent.get_rate_map_matrix(log_agent.srmat)
+        # vert_grid_cells = vert_agent.get_rate_map_matrix(vert_agent.srmat)
+        # compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, vert_grid_cells, gravity)
 
         # Spatial info and sparsity info
-        labels.append(f"g = 0.{gravity}")
-        spatial_info = []
-        sparsity_info = []
-        p = agent.freq_map / np.sum(agent.freq_map)
+        # labels.append(f"g = 0.{gravity}")
+        # spatial_info = []
+        # sparsity_info = []
+        # p = agent.freq_map / np.sum(agent.freq_map)
 
-        for grid_cell in grid_cells:
-            spatial_info.append(compute_spatial_info(p, grid_cell))
-            sparsity_info.append(compute_sparsity_info(p, grid_cell))
+        # for grid_cell in grid_cells:
+        #     spatial_info.append(compute_spatial_info(p, grid_cell))
+        #     sparsity_info.append(compute_sparsity_info(p, grid_cell))
         
-        grid_cell_spatial.append(spatial_info)
-        grid_cell_sparsity.append(sparsity_info)
+        # grid_cell_spatial.append(spatial_info)
+        # grid_cell_sparsity.append(sparsity_info)
 
         #for grid_id, grid_cell in zip(eigs, grid_cells):
         #   proj_3d_map(grid_cell, grid_id=grid_id, model_name=gravity)
