@@ -75,7 +75,7 @@ def compile_all_results(models, eigs):
         orth_grid_cells = orth_agent.get_rate_map_matrix(orth_agent.srmat)
         log_grid_cells = log_agent.get_rate_map_matrix(log_agent.srmat)
         vert_grid_cells = vert_agent.get_rate_map_matrix(vert_agent.srmat)
-        #compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, vert_grid_cells, gravity)
+        compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, vert_grid_cells, gravity)
 
         # Spatial info and sparsity info
         labels.append(f"g = 0.{gravity}")
@@ -121,7 +121,7 @@ def compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, vert_grid
         ac, grid_field_props = GridScorer_Stachenfeld2018.get_scores(vert_grid_cell)
         vert_scores.append(grid_field_props['gridscore'])
 
-    fig, ax = plt.subplots(1,4, figsize = (15, 8))
+    fig, ax = plt.subplots(1,4)
     sns.histplot(grid_scores, ax=ax[0], bins=20, kde=True, color='red'), ax[0].set_title("Spherical coordinates")
     sns.histplot(orth_scores, ax=ax[1], bins=20, kde=True, color='green'), ax[1].set_title("Orthogonal projection")
     sns.histplot(log_scores, ax=ax[2], bins=20, kde=True, color='blue'), ax[2].set_title("Logarithmic projection")
