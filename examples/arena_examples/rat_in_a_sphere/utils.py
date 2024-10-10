@@ -13,11 +13,18 @@ import os
 
 N_STACKS = N_SLICES = 36
 
+def extract_gravity(variant_path):
+    base_name = os.path.basename(variant_path)
+    gravity_str = base_name.split('_')[1]
+    gravity_value = float(gravity_str)
+    return gravity_value
+
 def read_in_models():
 
     sim_manager = SingleSim()
     models_dir = 'models'
     variants = [os.path.join(models_dir, name) for name in os.listdir(models_dir) if os.path.isdir(os.path.join(models_dir, name)) and name.startswith('gravity_')]
+    variants = sorted(variants, key=extract_gravity)
     models = []
     for variant in variants:
         agent, env, _ = sim_manager.load_results(os.path.join(variant, "spherical"))
@@ -52,23 +59,25 @@ def compute_sparsity_info(p: np.ndarray, X: np.ndarray):
     p, X = p.flatten(), np.abs(X.flatten())
     return (np.sum(p*X)**2) / np.sum(p*(X**2))
 
-def make_boxplot(ax, data, labels, x_label, y_label):
+def make_boxplot(ax, df, x_key, y_key, hue_key, x_label, y_label):
     sns.boxplot(
-        data=data,
+        data=df,
+        x=x_key,
+        y=y_key,
+        hue=hue_key,
         ax=ax,
-        palette='pastel',  
-        width=0.6,         
-        linewidth=2,     
+        palette='pastel',
+        width=0.6,
+        linewidth=2,
         flierprops=dict(marker='o', markersize=5, linestyle='none', markerfacecolor='red')
     )
-    ax.set_xticklabels(labels, fontsize=12)
     ax.set_title(f'Comparison of {y_label} across {x_label}', fontsize=16)
     ax.set_xlabel(x_label, fontsize=14)
     ax.set_ylabel(y_label, fontsize=14)
     sns.despine(offset=10, trim=True)
     ax.yaxis.grid(True)
     ax.set_axisbelow(True)
-
+    ax.legend(title='Spatial representation')
     return ax
 
 

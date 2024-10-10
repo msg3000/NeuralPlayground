@@ -9,6 +9,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from projection_agents import RatOnTangent, RatOnLogarithmicTangent
 from scipy import interpolate
 import os
+import pandas as pd
 from utils import *
 
 N_SLICES = N_STACKS = 36
@@ -39,6 +40,17 @@ def format_qualitative_results(grid_cells, orth_grid_cells, log_grid_cells, vert
         sac, grid_field_props = GridScorer_Stachenfeld2018.get_scores(grid_cells[idx])
         plot_grid_spherical_res(axes[idx], grid_cells[idx], sac, grid_field_props["gridscore"],
                                 grid_field_props['rotationCorrVals'], heading = idx == 0)
+        
+    for i, eig in enumerate(eig):
+        fig.text(
+            0.02,  # x-position: adjust as needed
+            (axes[len(eig_numbers) - i - 1].get_position().y0 + axes[len(eig_numbers) - i - 1].get_position().y1) / 2, 
+            f"Eigenvector {eig}",
+            va='center',
+            ha='left',
+            fontsize=14,
+            rotation='vertical'
+        )
     fig.savefig(f"results/{save_path}/sphere_cells.pdf")
     plt.close()
 
@@ -48,6 +60,17 @@ def format_qualitative_results(grid_cells, orth_grid_cells, log_grid_cells, vert
     for idx, x in enumerate(eig_numbers):
         axes[idx,0].axis('off')
         plot_grid_proj_res(axes[idx], orth_grid_cells[idx], log_grid_cells[idx], vert_grid_cells[idx], heading = idx == 0)
+
+    for i, eig in enumerate(eig):
+        fig.text(
+            0.02,  # x-position: adjust as needed
+            (axes[len(eig_numbers) - i - 1].get_position().y0 + axes[len(eig_numbers) - i - 1].get_position().y1) / 2, 
+            f"Eigenvector {eig}",
+            va='center',
+            ha='left',
+            fontsize=14,
+            rotation='vertical'
+        )
     fig.savefig(f"results/{save_path}/proj_cells.pdf")
     plt.close()
 
@@ -58,6 +81,7 @@ def compile_all_results(models, eigs):
     grid_cell_spatial = []
     grid_cell_sparsity = []
     labels = []
+    proj_type = []
 
     for model in models:
         agent, orth_agent, log_agent, vert_agent, gravity= model
@@ -78,28 +102,48 @@ def compile_all_results(models, eigs):
         compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, vert_grid_cells, gravity)
 
         # Spatial info and sparsity info
-        labels.append(f"g = 0.{gravity}")
+        labels.extend([float(gravity)] * len(grid_cells) * 4)
+        proj_type.extend(["Spherical", "Horizontal", "Logarithmic", "Vertical"] * len(grid_cells))
+
         spatial_info = []
         sparsity_info = []
         p = agent.freq_map / np.sum(agent.freq_map)
+        p_orth_vert = orth_grid_cells.freq_map / np.sum(orth_grid_cells.freq_map)
+        p_log = log_grid_cells.freq_map / np.sum(log_grid_cells.freq_map)
+        p_vert = vert_grid_cells.freq_map / np.sum(vert_grid_cells.freq_map)
 
-        for grid_cell in grid_cells:
-            spatial_info.append(compute_spatial_info(p, grid_cell))
-            sparsity_info.append(compute_sparsity_info(p, grid_cell))
+        for grid_cell, orth_cell, log_cell, vert_cell in zip(grid_cells, orth_grid_cells, log_grid_cells, vert_grid_cells):
+            spatial_info.append([compute_spatial_info(p, grid_cell), compute_spatial_info(p_orth_vert, orth_cell),
+                                 compute_spatial_info(p_log, log_cell), compute_spatial_info(p_vert, vert_cell)])
+            sparsity_info.append([compute_sparsity_info(p, grid_cell), compute_sparsity_info(p_orth_vert, orth_cell),
+                                 compute_sparsity_info(p_log, log_cell), compute_sparsity_info(p_vert, vert_cell)])
         
-        grid_cell_spatial.append(spatial_info)
-        grid_cell_sparsity.append(sparsity_info)
+        grid_cell_spatial.extend(spatial_info)
+        grid_cell_sparsity.extend(sparsity_info)
+
 
         #for grid_id, grid_cell in zip(eigs, grid_cells):
         #   proj_3d_map(grid_cell, grid_id=grid_id, model_name=gravity)
 
+    spatial_df = pd.DataFrame({
+        'gravity': labels,
+        'model': proj_type,
+        'spatial_info': spatial_info
+    })
+
+    sparsity_df = pd.DataFrame({
+        'gravity': labels,
+        'model': proj_type,
+        'spatial_info': sparsity_info
+    })
+
     fig, ax = plt.subplots(figsize=(16,8))
-    ax = make_boxplot(ax, grid_cell_spatial, labels, "Gravity strength", "Spatial information")
+    ax = make_boxplot(ax, spatial_df, 'gravity', 'model', 'spatial_info', "Gravity strength", "Spatial information")
     plt.savefig("results/spatial_info.pdf")
     plt.close()
 
     fig, ax = plt.subplots(figsize=(16,8))
-    ax = make_boxplot(ax, grid_cell_sparsity, labels, "Gravity strength", "Sparsity index")
+    ax = make_boxplot(ax, sparsity_df, 'gravity', 'model', 'sparsity_info', "Gravity strength", "Sparsity index")
     plt.savefig("results/sparsity_info.pdf")
     plt.close()
 
