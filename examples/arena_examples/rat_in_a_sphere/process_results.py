@@ -165,11 +165,11 @@ def compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, vert_grid
         ac, grid_field_props = GridScorer_Stachenfeld2018.get_scores(vert_grid_cell)
         vert_scores.append(grid_field_props['gridscore'])
 
-    fig, ax = plt.subplots(1,4)
-    sns.histplot(grid_scores, ax=ax[0], bins=20, kde=True, color='red'), ax[0].set_title("Spherical coordinates")
-    sns.histplot(orth_scores, ax=ax[1], bins=20, kde=True, color='green'), ax[1].set_title("Orthogonal projection")
-    sns.histplot(log_scores, ax=ax[2], bins=20, kde=True, color='blue'), ax[2].set_title("Logarithmic projection")
-    sns.histplot(vert_scores, ax=ax[3], bins=20, kde=True, color='purple'), ax[3].set_title("Vertical projection")
+    fig, ax = plt.subplots(1,4, figsize = (10, 6*4))
+    sns.histplot(grid_scores, ax=ax[0], bins=20, kde=True, color='red'), ax[0].set_title("Spherical \ncoordinates")
+    sns.histplot(orth_scores, ax=ax[1], bins=20, kde=True, color='green'), ax[1].set_title("Horizontal \nprojection")
+    sns.histplot(log_scores, ax=ax[2], bins=20, kde=True, color='blue'), ax[2].set_title("Logarithmic \nprojection")
+    sns.histplot(vert_scores, ax=ax[3], bins=20, kde=True, color='purple'), ax[3].set_title("Vertical \nprojection")
 
     fig.savefig(f"results/gravity_{gravity}/gridness_hist.pdf")
 
