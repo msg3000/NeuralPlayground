@@ -43,7 +43,7 @@ def format_qualitative_results(grid_cells, orth_grid_cells, log_grid_cells, vert
         
     for i, eig in enumerate(eig_numbers):
         fig.text(
-            0.02,  # x-position: adjust as needed
+            0.15,  # x-position: adjust as needed
             (axes[len(eig_numbers) - i - 1,0].get_position().y0 + axes[len(eig_numbers) - i - 1,0].get_position().y1) / 2, 
             f"Eigenvector {eig}",
             va='center',
@@ -63,7 +63,7 @@ def format_qualitative_results(grid_cells, orth_grid_cells, log_grid_cells, vert
 
     for i, eig in enumerate(eig_numbers):
         fig.text(
-            0.02,  # x-position: adjust as needed
+            0.15,  # x-position: adjust as needed
             (axes[len(eig_numbers) - i - 1,0].get_position().y0 + axes[len(eig_numbers) - i - 1,0].get_position().y1) / 2, 
             f"Eigenvector {eig}",
             va='center',
@@ -87,12 +87,12 @@ def compile_all_results(models, eigs):
         agent, orth_agent, log_agent, vert_agent, gravity= model
 
         # Plot specific eigenvector results
-        grid_cells = agent.get_rate_map_matrix(agent.srmat, eigs)
-        orth_grid_cells = orth_agent.get_rate_map_matrix(orth_agent.srmat, eigs)
-        log_grid_cells = log_agent.get_rate_map_matrix(log_agent.srmat, eigs)
-        vert_grid_cells = vert_agent.get_rate_map_matrix(vert_agent.srmat, eigs)
-        format_qualitative_results(grid_cells, orth_grid_cells, log_grid_cells, 
-                                   vert_grid_cells, eigs, f"gravity_{gravity}")
+        # grid_cells = agent.get_rate_map_matrix(agent.srmat, eigs)
+        # orth_grid_cells = orth_agent.get_rate_map_matrix(orth_agent.srmat, eigs)
+        # log_grid_cells = log_agent.get_rate_map_matrix(log_agent.srmat, eigs)
+        # vert_grid_cells = vert_agent.get_rate_map_matrix(vert_agent.srmat, eigs)
+        # format_qualitative_results(grid_cells, orth_grid_cells, log_grid_cells, 
+        #                            vert_grid_cells, eigs, f"gravity_{gravity}")
 
         # Compute gridness hist
         grid_cells = agent.get_rate_map_matrix(agent.srmat)
@@ -108,9 +108,9 @@ def compile_all_results(models, eigs):
         spatial_info = []
         sparsity_info = []
         p = agent.freq_map / np.sum(agent.freq_map)
-        p_orth_vert = orth_grid_cells.freq_map / np.sum(orth_grid_cells.freq_map)
-        p_log = log_grid_cells.freq_map / np.sum(log_grid_cells.freq_map)
-        p_vert = vert_grid_cells.freq_map / np.sum(vert_grid_cells.freq_map)
+        p_orth_vert = orth_agent.freq_map / np.sum(orth_agent.freq_map)
+        p_log = log_agent.freq_map / np.sum(log_agent.freq_map)
+        p_vert = vert_agent.freq_map / np.sum(vert_agent.freq_map)
 
         for grid_cell, orth_cell, log_cell, vert_cell in zip(grid_cells, orth_grid_cells, log_grid_cells, vert_grid_cells):
             spatial_info.append([compute_spatial_info(p, grid_cell), compute_spatial_info(p_orth_vert, orth_cell),
@@ -165,7 +165,7 @@ def compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, vert_grid
         ac, grid_field_props = GridScorer_Stachenfeld2018.get_scores(vert_grid_cell)
         vert_scores.append(grid_field_props['gridscore'])
 
-    fig, ax = plt.subplots(1,4, figsize = (10, 6*4))
+    fig, ax = plt.subplots(1,4, figsize = (6*4, 10))
     sns.histplot(grid_scores, ax=ax[0], bins=20, kde=True, color='red'), ax[0].set_title("Spherical \ncoordinates")
     sns.histplot(orth_scores, ax=ax[1], bins=20, kde=True, color='green'), ax[1].set_title("Horizontal \nprojection")
     sns.histplot(log_scores, ax=ax[2], bins=20, kde=True, color='blue'), ax[2].set_title("Logarithmic \nprojection")
