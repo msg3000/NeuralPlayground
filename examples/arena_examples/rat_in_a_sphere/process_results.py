@@ -107,9 +107,6 @@ def compile_all_results(models, eigs):
         # Spatial info and sparsity info
         labels.extend([float(gravity)] * total_grid_cells)
         proj_type.extend(["Spherical"]*len(grid_cells) + ["Horizontal"]*len(orth_grid_cells) + ["Logarithmic"]*len(log_grid_cells) + ["Vertical"] * len(vert_grid_cells))
-        print(len(labels))
-        print(len(proj_type))
-        print(len(spatial_info))
         
         spatial_info = []
         sparsity_info = []
@@ -117,6 +114,10 @@ def compile_all_results(models, eigs):
         p_orth = orth_agent.freq_map / np.sum(orth_agent.freq_map)
         p_log = log_agent.freq_map / np.sum(log_agent.freq_map)
         p_vert = vert_agent.freq_map / np.sum(vert_agent.freq_map)
+
+        print(len(labels))
+        print(len(proj_type))
+        print(len(spatial_info))
 
         for grid_cell in grid_cells:
             spatial_info.append(compute_spatial_info(p, grid_cell))
