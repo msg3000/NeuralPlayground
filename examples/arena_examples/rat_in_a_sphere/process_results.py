@@ -99,14 +99,18 @@ def compile_all_results(models, eigs):
         orth_grid_cells = orth_agent.get_rate_map_matrix(orth_agent.srmat)
         log_grid_cells = log_agent.get_rate_map_matrix(log_agent.srmat)
         vert_grid_cells = vert_agent.get_rate_map_matrix(vert_agent.srmat)
-        #compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, vert_grid_cells, gravity)
+        #
+        # compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, vert_grid_cells, gravity)
 
         total_grid_cells = len(grid_cells) + len(orth_grid_cells) + len(vert_grid_cells) + len(log_grid_cells)
 
         # Spatial info and sparsity info
         labels.extend([float(gravity)] * total_grid_cells)
         proj_type.extend(["Spherical"]*len(grid_cells) + ["Horizontal"]*len(orth_grid_cells) + ["Logarithmic"]*len(log_grid_cells) + ["Vertical"] * len(vert_grid_cells))
-
+        print(len(labels))
+        print(len(proj_type))
+        print(len(spatial_info))
+        
         spatial_info = []
         sparsity_info = []
         p = agent.freq_map / np.sum(agent.freq_map)
