@@ -41,7 +41,7 @@ def format_qualitative_results(grid_cells, orth_grid_cells, log_grid_cells, vert
         plot_grid_spherical_res(axes[idx], grid_cells[idx], sac, grid_field_props["gridscore"],
                                 grid_field_props['rotationCorrVals'], heading = idx == 0)
         
-    for i, eig in enumerate(eig):
+    for i, eig in enumerate(eig_numbers):
         fig.text(
             0.02,  # x-position: adjust as needed
             (axes[len(eig_numbers) - i - 1].get_position().y0 + axes[len(eig_numbers) - i - 1].get_position().y1) / 2, 
@@ -61,7 +61,7 @@ def format_qualitative_results(grid_cells, orth_grid_cells, log_grid_cells, vert
         axes[idx,0].axis('off')
         plot_grid_proj_res(axes[idx], orth_grid_cells[idx], log_grid_cells[idx], vert_grid_cells[idx], heading = idx == 0)
 
-    for i, eig in enumerate(eig):
+    for i, eig in enumerate(eig_numbers):
         fig.text(
             0.02,  # x-position: adjust as needed
             (axes[len(eig_numbers) - i - 1].get_position().y0 + axes[len(eig_numbers) - i - 1].get_position().y1) / 2, 
