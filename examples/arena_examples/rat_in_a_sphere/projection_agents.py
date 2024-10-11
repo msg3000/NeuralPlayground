@@ -147,22 +147,28 @@ class RatOnVertical(RatOnTangent):
     
     def __init__(self, agent_name: str = "SR", discount: float = 0.9, threshold: float = 0.000001, lr_td: float = 0.01, room_width: float = 12, room_depth: float = 12, state_density: float = 1, twoD: bool = True, replicable: bool = True, **mod_kwargs):
         super().__init__(agent_name, discount, threshold, lr_td, room_width, room_depth, state_density, twoD, replicable, **mod_kwargs)
+        # Modify vertical for even state density
+        self.depth = int(2 * self.room_depth * self.state_density)
+        self.n_state = int(self.depth * self.width)
+        self.obs_history = []
+        if twoD:
+            self.create_transmat(self.state_density, "2D_env")
 
     def obs_to_state(self, pos: ndarray):
         # Compute the bin size in both x and y directions
-        bin_size_x = self.room_width / (self.width - 1)
-        bin_size_y = self.room_depth / (self.depth - 1)
+        bin_size_y = self.room_width / (self.width - 1)
+        bin_size_z = self.room_depth / (self.depth - 1)
 
         # Map the observed position to the closest bin indices
-        x_index = int(np.round((pos[0] - (-self.room_width / 2)) / bin_size_x))
-        y_index = self.depth -1 - int(np.round((pos[1] - (-self.room_depth)) / bin_size_y))
+        y_index = int(np.round((pos[0] - (-self.room_width / 2)) / bin_size_y))
+        z_index = self.depth -1 - int(np.round((pos[1] - (-self.room_depth)) / bin_size_z))
 
         # Clamp indices to ensure they are within valid bounds
-        x_index = np.clip(x_index, 0, self.width-1)
-        y_index = np.clip(y_index, 0, self.depth-1)
+        y_index = np.clip(y_index, 0, self.width-1)
+        z_index = np.clip(z_index, 0, self.depth-1)
 
         # Convert 2D (x_index, y_index) to a single state index in the linear state space
-        curr_state = y_index * self.width + x_index
+        curr_state = z_index * self.width + y_index
 
         return curr_state
     def act(self, obs):

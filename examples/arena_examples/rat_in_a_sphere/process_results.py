@@ -99,24 +99,36 @@ def compile_all_results(models, eigs):
         orth_grid_cells = orth_agent.get_rate_map_matrix(orth_agent.srmat)
         log_grid_cells = log_agent.get_rate_map_matrix(log_agent.srmat)
         vert_grid_cells = vert_agent.get_rate_map_matrix(vert_agent.srmat)
-        compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, vert_grid_cells, gravity)
+        #compile_gridness_hist(grid_cells, orth_grid_cells, log_grid_cells, vert_grid_cells, gravity)
+
+        total_grid_cells = len(grid_cells) + len(orth_grid_cells) + len(vert_grid_cells) + len(log_grid_cells)
 
         # Spatial info and sparsity info
-        labels.extend([float(gravity)] * len(grid_cells) * 4)
-        proj_type.extend(["Spherical", "Horizontal", "Logarithmic", "Vertical"] * len(grid_cells))
+        labels.extend([float(gravity)] * total_grid_cells)
+        proj_type.extend(["Spherical"]*len(grid_cells) + ["Horizontal"]*len(orth_grid_cells) + ["Logarithmic"]*len(log_grid_cells) + ["Vertical"] * len(vert_grid_cells))
 
         spatial_info = []
         sparsity_info = []
         p = agent.freq_map / np.sum(agent.freq_map)
-        p_orth_vert = orth_agent.freq_map / np.sum(orth_agent.freq_map)
+        p_orth = orth_agent.freq_map / np.sum(orth_agent.freq_map)
         p_log = log_agent.freq_map / np.sum(log_agent.freq_map)
         p_vert = vert_agent.freq_map / np.sum(vert_agent.freq_map)
 
-        for grid_cell, orth_cell, log_cell, vert_cell in zip(grid_cells, orth_grid_cells, log_grid_cells, vert_grid_cells):
-            spatial_info.append([compute_spatial_info(p, grid_cell), compute_spatial_info(p_orth_vert, orth_cell),
-                                 compute_spatial_info(p_log, log_cell), compute_spatial_info(p_vert, vert_cell)])
-            sparsity_info.append([compute_sparsity_info(p, grid_cell), compute_sparsity_info(p_orth_vert, orth_cell),
-                                 compute_sparsity_info(p_log, log_cell), compute_sparsity_info(p_vert, vert_cell)])
+        for grid_cell in grid_cells:
+            spatial_info.append(compute_spatial_info(p, grid_cell))
+            sparsity_info.append(compute_sparsity_info(p, grid_cell))
+        
+        for orth_cell in orth_grid_cells:
+            spatial_info.append(compute_spatial_info(p_orth, orth_cell))
+            sparsity_info.append(compute_sparsity_info(p_orth, orth_cell))
+        
+        for log_cell in log_grid_cells:
+            spatial_info.append(compute_spatial_info(p_log, log_cell))
+            sparsity_info.append(compute_sparsity_info(p_log, log_cell))
+
+        for vert_cell in vert_grid_cells:
+            spatial_info.append(compute_spatial_info(p_vert, vert_cell))
+            sparsity_info.append(compute_sparsity_info(p_vert, vert_cell))
         
         grid_cell_spatial.extend(spatial_info)
         grid_cell_sparsity.extend(sparsity_info)
