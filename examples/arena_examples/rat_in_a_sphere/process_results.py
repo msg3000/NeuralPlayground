@@ -117,7 +117,7 @@ def compile_all_results(models, eigs):
 
         print(len(labels))
         print(len(proj_type))
-        print(len(spatial_info))
+        print(len(grid_cell_spatial))
 
         for grid_cell in grid_cells:
             spatial_info.append(compute_spatial_info(p, grid_cell))
@@ -145,13 +145,13 @@ def compile_all_results(models, eigs):
     spatial_df = pd.DataFrame({
         'gravity': labels,
         'model': proj_type,
-        'spatial_info': spatial_info
+        'spatial_info': grid_cell_spatial
     })
 
     sparsity_df = pd.DataFrame({
         'gravity': labels,
         'model': proj_type,
-        'spatial_info': sparsity_info
+        'spatial_info': grid_cell_sparsity
     })
 
     fig, ax = plt.subplots(figsize=(16,8))
