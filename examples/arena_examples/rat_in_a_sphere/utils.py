@@ -16,7 +16,7 @@ N_STACKS = N_SLICES = 36
 def extract_gravity(variant_path):
     base_name = os.path.basename(variant_path)
     gravity_str = base_name.split('_')[1]
-    gravity_value = float(gravity_str)
+    gravity_value = float(gravity_str)/100
     return gravity_value
 
 def read_in_models():

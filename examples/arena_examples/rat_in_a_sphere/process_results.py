@@ -83,6 +83,8 @@ def compile_all_results(models, eigs):
     labels = []
     proj_type = []
 
+    GridScorer_Stachenfeld2018 = GridScorer(N_STACKS + 1)
+
     for model in models:
         agent, orth_agent, log_agent, vert_agent, gravity= model
 
@@ -105,8 +107,8 @@ def compile_all_results(models, eigs):
         total_grid_cells = len(grid_cells) + len(orth_grid_cells) + len(vert_grid_cells) + len(log_grid_cells)
 
         # Spatial info and sparsity info
-        labels.extend([float(gravity)] * total_grid_cells)
-        proj_type.extend(["Spherical"]*len(grid_cells) + ["Horizontal"]*len(orth_grid_cells) + ["Logarithmic"]*len(log_grid_cells) + ["Vertical"] * len(vert_grid_cells))
+        #labels.extend([float(gravity)] * total_grid_cells)
+        #proj_type.extend(["Spherical"]*len(grid_cells) + ["Horizontal"]*len(orth_grid_cells) + ["Logarithmic"]*len(log_grid_cells) + ["Vertical"] * len(vert_grid_cells))
         
         spatial_info = []
         sparsity_info = []
@@ -115,25 +117,38 @@ def compile_all_results(models, eigs):
         p_log = log_agent.freq_map / np.sum(log_agent.freq_map)
         p_vert = vert_agent.freq_map / np.sum(vert_agent.freq_map)
 
-        print(len(labels))
-        print(len(proj_type))
-        print(len(grid_cell_spatial))
+        # print(len(labels))
+        # print(len(proj_type))
+        # print(len(grid_cell_spatial))
 
         for grid_cell in grid_cells:
-            spatial_info.append(compute_spatial_info(p, grid_cell))
-            sparsity_info.append(compute_sparsity_info(p, grid_cell))
+            if GridScorer_Stachenfeld2018.get_scores(grid_cell)[1]['gridscore'] > 0:
+                spatial_info.append(compute_spatial_info(p, grid_cell))
+                sparsity_info.append(compute_sparsity_info(p, grid_cell))
+                labels.append(float(gravity))
+                proj_type.append("Spherical")
         
         for orth_cell in orth_grid_cells:
-            spatial_info.append(compute_spatial_info(p_orth, orth_cell))
-            sparsity_info.append(compute_sparsity_info(p_orth, orth_cell))
+            if GridScorer_Stachenfeld2018.get_scores(orth_cell)[1]['gridscore'] > 0:
+                spatial_info.append(compute_spatial_info(p_orth, orth_cell))
+                sparsity_info.append(compute_sparsity_info(p_orth, orth_cell))
+                labels.append(float(gravity))
+                proj_type.append("Horizontal (Orthogonal projection)")
+
         
         for log_cell in log_grid_cells:
-            spatial_info.append(compute_spatial_info(p_log, log_cell))
-            sparsity_info.append(compute_sparsity_info(p_log, log_cell))
+            if GridScorer_Stachenfeld2018.get_scores(log_cell)[1]['gridscore'] > 0:
+                spatial_info.append(compute_spatial_info(p_log, log_cell))
+                sparsity_info.append(compute_sparsity_info(p_log, log_cell))
+                labels.append(float(gravity))
+                proj_type.append("Horizontal (Logarithmic projection)")
 
         for vert_cell in vert_grid_cells:
-            spatial_info.append(compute_spatial_info(p_vert, vert_cell))
-            sparsity_info.append(compute_sparsity_info(p_vert, vert_cell))
+            if GridScorer_Stachenfeld2018.get_scores(vert_cell)[1]['gridscore'] > 0:
+                spatial_info.append(compute_spatial_info(p_vert, vert_cell))
+                sparsity_info.append(compute_sparsity_info(p_vert, vert_cell))
+                labels.append(float(gravity))
+                proj_type.append("Vertical (Orthogonal projection)")
         
         grid_cell_spatial.extend(spatial_info)
         grid_cell_sparsity.extend(sparsity_info)
