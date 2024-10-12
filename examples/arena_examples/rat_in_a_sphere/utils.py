@@ -31,7 +31,7 @@ def read_in_models():
         orth_agent, env, _ = sim_manager.load_results(os.path.join(variant, "orth_proj"))
         log_agent, env, _ = sim_manager.load_results(os.path.join(variant, "log_proj"))
         vert_agent, env, _ = sim_manager.load_results(os.path.join(variant, "vert_proj"))
-        models.append((agent, orth_agent, log_agent, vert_agent, variant.split("_")[1][2:]))
+        models.append((agent, orth_agent, log_agent, vert_agent, float(variant.split("_")[1][2:])/100))
     return models
 
 def compute_spatial_info(p: np.ndarray, X: np.ndarray):
