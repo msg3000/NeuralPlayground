@@ -151,16 +151,16 @@ def compile_all_results(models, eigs):
     sparsity_df = pd.DataFrame({
         'gravity': labels,
         'model': proj_type,
-        'spatial_info': grid_cell_sparsity
+        'sparsity_info': grid_cell_sparsity
     })
 
     fig, ax = plt.subplots(figsize=(16,8))
-    ax = make_boxplot(ax, spatial_df, 'gravity', 'model', 'spatial_info', "Gravity strength", "Spatial information")
+    ax = make_boxplot(ax, spatial_df, 'gravity', 'spatial_info', 'model', "Gravity strength", "Spatial information")
     plt.savefig("results/spatial_info.pdf")
     plt.close()
 
     fig, ax = plt.subplots(figsize=(16,8))
-    ax = make_boxplot(ax, sparsity_df, 'gravity', 'model', 'sparsity_info', "Gravity strength", "Sparsity index")
+    ax = make_boxplot(ax, sparsity_df, 'gravity', 'sparisty_info', 'model', "Gravity strength", "Sparsity index")
     plt.savefig("results/sparsity_info.pdf")
     plt.close()
 
