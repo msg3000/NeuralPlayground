@@ -160,7 +160,7 @@ def compile_all_results(models, eigs):
     plt.close()
 
     fig, ax = plt.subplots(figsize=(16,8))
-    ax = make_boxplot(ax, sparsity_df, 'gravity', 'sparisty_info', 'model', "Gravity strength", "Sparsity index")
+    ax = make_boxplot(ax, sparsity_df, 'gravity', 'sparsity_info', 'model', "Gravity strength", "Sparsity index")
     plt.savefig("results/sparsity_info.pdf")
     plt.close()
 
